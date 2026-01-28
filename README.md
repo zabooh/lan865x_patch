@@ -1,110 +1,122 @@
-# Benötigte Quelldateien und ihre Bedeutung
+# LAN865x Build First Script
 
-Das Patch-Skript setzt voraus, dass folgende Dateien und Verzeichnisse im Projekt vorhanden sind:
+The `lan865x_build_first.sh` script is the main entry point for setting up and building the LAN8651 development environment. It automates the following steps:
 
-- **lan966x-pcb8291.dts**: Device Tree Source für das Zielboard. Enthält die Hardware-Beschreibung, insbesondere die Definition des LAN865x-Knotens für die SPI-Anbindung.
-- **lan865x.c**: Quellcode des LAN865x-Treibers. Wird in den Kernel-Build übernommen und als Modul gebaut.
-- **linux.config**: Kernel-Konfigurationsdatei. Legt fest, welche Kernel-Optionen und Treiber beim Build aktiviert werden.
-- **buildroot.config**: Buildroot-Konfigurationsdatei. Bestimmt, welche Pakete und Einstellungen für das Root-Filesystem und die Toolchain verwendet werden.
-- **board/mscc/common/rootfs_overlay/**: Overlay-Verzeichnis mit Zusatzdateien für das Root-Filesystem (z.B. Netzwerkkonfiguration, SSH, Init-Skripte). Alle Inhalte werden ins Ziel-Rootfs kopiert.
-- **output/<build_config>/build/linux-custom/arch/arm/boot/dts/microchip/**: Zielverzeichnis für Device Tree-Dateien im Kernel-Build.
-- **output/<build_config>/build/**: Buildverzeichnis für alle Kernel- und Paketquellen.
-- **output/<build_config>/build/linux-custom/**: Kernel-Buildverzeichnis mit allen Kernelquellen und -artefakten.
-- **output/<build_config>/images/**: Verzeichnis für die erzeugten Images (Kernel, Rootfs, DTB, etc.).
+- Downloads and extracts the required Board Support Package (BSP) if not already present.
+- Sets up the Buildroot configuration and runs the initial build process.
+- After a successful build, it automatically calls the patch script (`patch_bsp_lan8651.sh`) to apply all necessary patches, configuration changes, and file copies for LAN8651 development.
 
-Diese Dateien und Verzeichnisse sind für einen erfolgreichen Ablauf des Patch-Skripts zwingend erforderlich. Fehlt eine davon, bricht das Skript mit einer Fehlermeldung ab.
+This script ensures that the entire build and patch process is performed in the correct order, making it easy to get started with a single command.
 
-# Netzwerk-Konfiguration (Overlay)
 
-Das Patch-Skript erzeugt im Overlay die Datei `/etc/network/interfaces` mit folgender statischer Netzwerkkonfiguration:
+# LAN8651 Buildroot Patch Script – English Documentation (2026-01-28)
 
-- **eth0**
-  - IP-Adresse: 169.254.45.100
-  - Netzmaske: 255.255.0.0
-- **eth1**
-  - IP-Adresse: 192.168.0.5
-  - Netzmaske: 255.255.255.0
-- **eth2**
-  - IP-Adresse: 169.254.45.150
-  - Netzmaske: 255.255.0.0
+## Required Source Files and Their Purpose
 
-Diese Einstellungen sorgen dafür, dass alle drei Interfaces nach dem Booten sofort mit den jeweiligen Adressen verfügbar sind. Die Konfiguration ist in `/etc/network/interfaces` im Rootfs hinterlegt und wird beim Systemstart automatisch angewendet.
+This patch script requires the following files and directories to be present in the project:
 
-# Dokumentation: patch_bsp_lan8651.sh
+- **lan966x-pcb8291.dts**: Device Tree Source for the target board. Describes the hardware, especially the LAN865x node for SPI connection.
+- **lan865x.c**: LAN865x driver source code. Integrated into the kernel build and built as a module.
+- **linux.config**: Kernel configuration file. Specifies which kernel options and drivers are enabled during the build.
+- **buildroot.config**: Buildroot configuration file. Determines which packages and settings are used for the root filesystem and toolchain.
+- **board/mscc/common/rootfs_overlay/**: Overlay directory with additional files for the root filesystem (e.g., network config, SSH, init scripts). All contents are copied into the target rootfs.
+- **output/<build_config>/build/linux-custom/arch/arm/boot/dts/microchip/**: Target directory for device tree files in the kernel build.
+- **output/<build_config>/build/**: Build directory for all kernel and package sources.
+- **output/<build_config>/build/linux-custom/**: Kernel build directory with all kernel sources and artifacts.
+- **output/<build_config>/images/**: Directory for generated images (kernel, rootfs, DTB, etc.).
 
-Dieses Skript automatisiert die Vorbereitung und das Patchen einer Buildroot-Umgebung für die Entwicklung mit dem Microchip LAN8651 Modul auf einer LAN9662-Plattform. Es führt alle notwendigen Schritte aus, um Kernel, Device Tree, Overlays und Entwicklungs-Tools korrekt zu integrieren und zu konfigurieren.
+These files and directories are mandatory for the script to run successfully. If any are missing, the script will abort with an error message.
 
-## Übersicht der Schritte, Ziele und Dateiinhalte
+## Network Configuration (Overlay)
 
-1. **post-build.sh erzeugen**
-   - **Ziel:** Nach dem Build automatisch SSH-Zugang für das Zielsystem einrichten, damit Entwickler sich direkt als root anmelden können. Das Skript setzt das Root-Passwort und aktiviert Dropbear-SSH.
-   - **Datei-Inhalt:** Bash-Skript, das das Root-Passwort in /etc/shadow auf "microchip" setzt, Dropbear aktiviert und die Rechte für /etc/dropbear und /etc/shadow korrekt setzt.
+The patch script generates `/etc/network/interfaces` in the overlay with the following static network configuration:
 
-2. **Eigene Konfigurationsdateien kopieren**
-   - **Ziel:** Sicherstellen, dass die gewünschten Kernel- und Buildroot-Konfigurationen verwendet werden, um eine reproduzierbare und angepasste Buildumgebung zu gewährleisten.
-   - **Dateien:**
-     - `linux.config`: Enthält alle Kernel-Konfigurationsoptionen.
-     - `buildroot.config`: Enthält alle Buildroot-Konfigurationsoptionen.
+- **eth0**: 169.254.45.100/16
+- **eth1**: 192.168.0.5/24
+- **eth2**: 169.254.45.150/16
 
-3. **Verzeichnis- und Dateiprüfungen**
-   - **Ziel:** Vor dem Start des eigentlichen Patch- und Build-Prozesses prüfen, ob alle benötigten Dateien und Verzeichnisse vorhanden sind, um Fehler frühzeitig zu erkennen und den Build nicht ins Leere laufen zu lassen.
-   - **Dateien:** Keine neuen Dateien, nur Prüfung.
+These settings ensure all three interfaces are available with their respective addresses immediately after boot. The configuration is stored in `/etc/network/interfaces` in the rootfs and applied automatically at system startup.
 
-4. **Device Tree kopieren und alte DTBs entfernen**
-   - **Ziel:** Die aktuelle, angepasste Device Tree Source ins Buildsystem übernehmen und alte, möglicherweise fehlerhafte DTBs entfernen, damit nur die gewünschte Hardwarebeschreibung verwendet wird.
-   - **Dateien:**
-     - `lan966x-pcb8291.dts`: Device Tree Source mit allen Hardware-Definitionen.
-     - Entfernte Dateien: alte .dtb-Dateien im Build- und Images-Verzeichnis.
+## patch_bsp_lan8651.sh – Script Overview
 
-5. **Overlay kopieren und konfigurieren**
-   - **Ziel:** Entwicklungs-spezifische Anpassungen (z.B. SSH, Netzwerkkonfiguration) ins Root-Filesystem einbringen, damit das Zielsystem nach dem Flashen sofort einsatzbereit ist.
-   - **Dateien:**
-     - Kopie des gesamten Overlays `board/mscc/common/rootfs_overlay` ins Output-Verzeichnis.
-     - `etc/dropbear/dropbear.conf`: Dropbear-Konfiguration für Entwicklung (Root-Login erlaubt).
+This script automates the preparation and patching of a Buildroot environment for development with the Microchip LAN8651 module on a LAN9662 platform. It performs all necessary steps to correctly integrate and configure kernel, device tree, overlays, and development tools.
 
-6. **Kernel-Treiberdatei aktualisieren**
-   - **Ziel:** Sicherstellen, dass immer die aktuelle Version des LAN865x-Treibers im Kernel-Build verwendet wird, um Fehler durch veraltete Treiber zu vermeiden.
-   - **Datei:**
-     - `lan865x.c`: Aktueller Treiberquelltext im Kernel-Build-Verzeichnis.
+### Steps, Goals, and File Details
 
-7. **Ethernet-Schnittstellen im Overlay einrichten**
-   - **Ziel:** Die Netzwerkschnittstellen eth0, eth1 und eth2 mit festen IP-Adressen vorkonfigurieren, damit sie nach dem Booten sofort verfügbar sind und getestet werden können.
-   - **Datei:**
-     - `etc/network/interfaces`: Enthält statische Konfigurationen für eth0, eth1, eth2.
+1. **Create post-build.sh if not present**
+   - **Goal:** Automatically set up SSH access for the target system after the build, allowing developers to log in as root. The script sets the root password and enables Dropbear SSH.
+   - **File:** Bash script that sets the root password in /etc/shadow to "microchip", enables Dropbear, and sets correct permissions for /etc/dropbear and /etc/shadow.
 
-8. **Init-Skript für lan865x-Modul-Autoload erzeugen**
-   - **Ziel:** Automatisches Laden des lan865x-Kernelmoduls beim Systemstart sicherstellen, auch wenn BusyBox-Init verwendet wird.
-   - **Datei:**
-     - `etc/init.d/S09lan865xmodprobe`: Shell-Skript, das das Modul beim Booten lädt oder entlädt.
+2. **Copy custom configuration files**
+   - **Goal:** Ensure the desired kernel and Buildroot configurations are used for a reproducible and customized build environment.
+   - **Files:**
+     - `linux.config`: All kernel configuration options.
+     - `buildroot.config`: All Buildroot configuration options.
 
-9. **Ladeskript für das Target erzeugen**
-   - **Ziel:** Einfache Möglichkeit bieten, das Kernelmodul auf dem Zielsystem manuell zu entladen und neu zu laden, z.B. für Debugging oder Updates.
-   - **Datei:**
-     - `root/load_lan865x.sh`: Shell-Skript, das das Modul entlädt und neu lädt.
+3. **Directory and file checks**
+   - **Goal:** Check for all required files and directories before starting the patch and build process to catch errors early.
+   - **Files:** No new files, only checks.
 
-10. **Kernelmodul-Autoload (Overlay) einrichten**
-    - **Ziel:** Das lan865x-Modul wird beim Systemstart automatisch geladen, ohne dass ein manuelles Eingreifen nötig ist.
-    - **Datei:**
-      - `etc/modules-load.d/lan865x.conf`: Enthält nur den Eintrag `lan865x`.
+4. **Copy device tree and remove old DTBs**
+   - **Goal:** Integrate the current, customized device tree source into the build system and remove old, possibly incorrect DTBs.
+   - **Files:**
+     - `lan966x-pcb8291.dts`: Device tree source with all hardware definitions.
+     - Removed files: old .dtb files in the build and images directories.
 
-11. **Build ausführen**
-    - **Ziel:** Den Kernel und das Root-Filesystem mit allen Änderungen neu bauen, damit alle Anpassungen im finalen Image enthalten sind.
-    - **Dateien:** Alle Build- und Image-Dateien werden neu erzeugt.
+5. **Copy and configure overlay**
+   - **Goal:** Integrate development-specific adjustments (e.g., SSH, network config) into the root filesystem so the target is ready to use after flashing.
+   - **Files:**
+     - Copy of the entire overlay `board/mscc/common/rootfs_overlay` to the output directory.
+     - `etc/dropbear/dropbear.conf`: Dropbear configuration for development (root login allowed).
 
-12. **Prüfungen nach dem Build**
-    - **Ziel:** Sicherstellen, dass alle wichtigen Komponenten (DTB, Overlay, Autoload, SSH) korrekt integriert wurden und das System wie erwartet funktioniert.
-    - **Dateien:** Keine neuen Dateien, aber Prüfung der erzeugten DTB, Overlay- und Autoload-Dateien.
+6. **Update kernel driver file**
+   - **Goal:** Ensure the latest version of the LAN865x driver is always used in the kernel build to avoid issues from outdated drivers.
+   - **File:**
+     - `lan865x.c`: Current driver source in the kernel build directory.
 
-13. **Dokumentation**
-    - **Ziel:** Nachvollziehbarkeit aller Änderungen und Kopiervorgänge für spätere Analysen oder Audits gewährleisten.
-    - **Datei:**
-      - `CHANGES_DOCUMENTATION.md`: Protokolliert alle durchgeführten Änderungen, Zeitstempel, Quell- und Zielpfade.
+7. **Set up Ethernet interfaces in the overlay**
+   - **Goal:** Preconfigure eth0, eth1, and eth2 with static IP addresses so they are available and testable immediately after boot.
+   - **File:**
+     - `etc/network/interfaces`: Contains static configuration for eth0, eth1, eth2.
 
-14. **Kopieren des Kernelmoduls**
-    - **Ziel:** Das gebaute Kernelmodul wird für den schnellen Zugriff und die Weiterverwendung (z.B. Test, Deployment) an einen festen Ort außerhalb des Buildsystems kopiert.
-    - **Datei:**
-      - `/mnt/c/Users/M91221/work/lan9662/lan865x.ko`: Kopie des gebauten Kernelmoduls.
+8. **Create init script for lan865x module autoload**
+   - **Goal:** Ensure the lan865x kernel module is loaded automatically at boot, even with BusyBox init.
+   - **File:**
+     - `etc/init.d/S09lan865xmodprobe`: Shell script to load/unload the module at boot.
+
+9. **Create load script for the target**
+   - **Goal:** Provide a simple way to manually unload and reload the kernel module on the target (for debugging or updates).
+   - **File:**
+     - `root/load_lan865x.sh`: Shell script to unload and reload the module.
+
+10. **Set up kernel module autoload (overlay)**
+    - **Goal:** The lan865x module is loaded automatically at boot without manual intervention.
+    - **File:**
+      - `etc/modules-load.d/lan865x.conf`: Contains only the entry `lan865x`.
+
+11. **Run build**
+    - **Goal:** Rebuild the kernel and root filesystem with all changes so everything is included in the final image.
+    - **Files:** All build and image files are regenerated.
+
+12. **Post-build checks**
+    - **Goal:** Ensure all key components (DTB, overlay, autoload, SSH) are correctly integrated and the system works as expected.
+    - **Files:** No new files, but checks for generated DTB, overlay, and autoload files.
+
+13. **Documentation**
+    - **Goal:** Ensure traceability of all changes and copy operations for later analysis or audits.
+    - **File:**
+      - `CHANGES_DOCUMENTATION.md`: Logs all changes, timestamps, source and destination paths.
+
+14. **Copy kernel module**
+    - **Goal:** The built kernel module is copied to a fixed location outside the build system for quick access and reuse (e.g., testing, deployment).
+    - **File:**
+      - `/mnt/c/Users/M91221/work/lan9662/lan865x.ko`: Copy of the built kernel module.
+
+15. **Copy brsdk_standalone_arm.ext4.gz image**
+    - **Goal:** The built root filesystem image is copied to a fixed location for deployment or further processing.
+    - **File:**
+      - `/mnt/c/Users/M91221/work/lan9662/brsdk_standalone_arm.ext4.gz`: Copy of the built image.
 
 ---
 
-**Letzte Änderung:** 2026-01-28
+**Last update:** 2026-01-28
