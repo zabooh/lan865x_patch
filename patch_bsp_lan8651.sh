@@ -1,64 +1,64 @@
 #!/usr/bin/env bash
 
-## Farbige Ausgaben
+## Colored output
 print_info()    { echo -e "\033[1;36m[INFO]\033[0m $*"; }
 print_warning() { echo -e "\033[1;33m[WARN]\033[0m $*"; }
+print_debug()   { echo -e "\033[1;32m[DEBG]\033[0m $*"; }
 print_error()   { echo -e "\033[1;31m[ERROR]\033[0m $*"; exit 1; }
 
+print_info "# Changes for LAN8651 development"
+print_info ""
+print_info "This document summarizes the changes and adjustments made for development with the LAN8651 Ethernet controller."
+print_info ""
+print_info "## Build process changes"
+print_info "- Creation and adjustment of `post-build.sh` to configure SSH access and root password."
+print_info "- Copying custom kernel and Buildroot configuration files."
+print_info "- Updating the device tree with LAN8651 support."
+print_info "- Setting up a rootfs overlay with specific adjustments for Dropbear SSH and network interfaces."
+print_info "- Updating the LAN865x kernel driver."
+print_info "- Creating an init script for automatic loading of the LAN865x module at system startup."
+print_info "- Creating a load script for manual loading of the LAN865x module on the target system."
+print_info ""
+print_info "## Important files"
+print_info "- `post-build.sh`: Configures SSH access and root password."
+print_info "- `lan966x-pcb8291.dts`: Device tree source file with LAN8651 support."
+print_info "- `lan865x.c`: Updated kernel driver file for the LAN865x Ethernet controller."
+print_info "- `load_lan865x.sh`: Script to load the LAN865x kernel module on the target."
+print_info "- `S09lan865xmodprobe`: Init script for automatic loading of the LAN865x module at boot."
+print_info ""
+print_info "## Notes"
+print_info "- The root user is configured by default with the password 'microchip'. It is recommended to change this password after development."
+print_info "- Ensure that the Dropbear SSH configuration meets the security requirements of your environment."
 
-print_info "# Änderungen für LAN8651-Entwicklung"
-print_info ""
-print_info "Dieses Dokument fasst die vorgenommenen Änderungen und Anpassungen für die Entwicklung mit dem LAN8651 Ethernet-Controller zusammen."
-print_info ""
-print_info "## Änderungen im Build-Prozess"
-print_info "- Erzeugung und Anpassung von \`post-build.sh\` zur Konfiguration von SSH-Zugang und Root-Passwort."
-print_info "- Kopieren eigener Kernel- und Buildroot-Konfigurationsdateien."
-print_info "- Aktualisierung des Device Trees mit Unterstützung für LAN8651."
-print_info "- Einrichtung eines RootFS-Overlays mit spezifischen Anpassungen für Dropbear SSH und Netzwerkinterfaces."
-print_info "- Aktualisierung des LAN865x Kernel-Treibers."
-print_info "- Einrichtung eines Init-Skripts für das automatische Laden des LAN865x Moduls beim Systemstart."
-print_info "- Erstellung eines Ladeskripts für das manuelle Laden des LAN865x Moduls auf dem Target-System."
-print_info ""
-print_info "## Wichtige Dateien"
-print_info "- \`post-build.sh\`: Konfiguriert SSH-Zugang und Root-Passwort."
-print_info "- \`lan966x-pcb8291.dts\`: Device Tree Source Datei mit LAN8651 Unterstützung."
-print_info "- \`lan865x.c\`: Aktualisierte Kernel-Treiberdatei für den LAN865x Ethernet-Controller."
-print_info "- \`load_lan865x.sh\`: Skript zum Laden des LAN865x Kernelmoduls auf dem Target."
-print_info "- \`S09lan865xmodprobe\`: Init-Skript zum automatischen Laden des LAN865x Moduls beim Booten."
-print_info ""
-print_info "## Hinweise"
-print_info "- Der Root-Benutzer ist standardmäßig mit dem Passwort 'microchip' konfiguriert. Es wird empfohlen, dieses Passwort nach der Entwicklung zu ändern."
-print_info "- Stellen Sie sicher, dass die Dropbear SSH-Konfiguration den Sicherheitsanforderungen Ihrer Umgebung entspricht."
 
-
-print_info "Dieses Skript führt folgende Schritte aus:"
-print_info " 1. post-build.sh erzeugen, falls nicht vorhanden"
-print_info " 2. Eigene Konfigurationsdateien kopieren (Kernel/Buildroot)"
-print_info " 3. Verzeichnis- und Dateiprüfungen"
-print_info " 4. Device Tree kopieren und alte DTBs entfernen"
-print_info " 5. Overlay kopieren und konfigurieren (Dropbear, Netzwerk)"
-print_info " 6. Kernel-Treiberdatei aktualisieren (lan865x.c)"
-print_info " 7. Ethernet-Schnittstellen im Overlay einrichten"
-print_info " 8. Ladeskript für das Target erzeugen"
-print_info " 9. Kernelmodul-Autoload (Overlay) einrichten"
-print_info "10. Build ausführen (make linux-reconfigure, make)"
-print_info "11. Prüfungen (DTB, Overlay, Dropbear, Autoload)"
-print_info "12. Dokumentation der Änderungen"
-print_info "Folgende Dateien und Verzeichnisse werden vorausgesetzt:"
+print_info "This script performs the following steps:"
+print_info " 1. Create post-build.sh if not present"
+print_info " 2. Copy custom configuration files (kernel/Buildroot)"
+print_info " 3. Directory and file checks"
+print_info " 4. Copy device tree and remove old DTBs"
+print_info " 5. Copy and configure overlay (Dropbear, network)"
+print_info " 6. Update kernel driver file (lan865x.c)"
+print_info " 7. Set up Ethernet interfaces in the overlay"
+print_info " 8. Create load script for the target"
+print_info " 9. Set up kernel module autoload (overlay)"
+print_info "10. Run build (make linux-reconfigure, make)"
+print_info "11. Checks (DTB, overlay, Dropbear, autoload)"
+print_info "12. Documentation of changes"
+print_info "The following files and directories are required:"
 print_info " - lan966x-pcb8291.dts"
 print_info " - lan865x.c"
 print_info " - linux.config"
 print_info " - buildroot.config"
-print_info " - board/mscc/common/rootfs_overlay/ (mit Inhalt)"
-print_info " - output/${1}/build/linux-custom/arch/arm/boot/dts/microchip/ (Ziel für DTS/DTB)"
-print_info " - output/${1}/build/ (Buildverzeichnis)"
-print_info " - output/${1}/build/linux-custom/ (Kernel-Buildverzeichnis)"
-print_info " - output/${1}/images/ (Imageverzeichnis)"
-print_info " - BSP Base Directory ${2}"
-print_info "Bitte bestätigen Sie mit 'y' und Enter, um fortzufahren, oder brechen Sie mit 'n' ab."
-#read -r -p "Fortfahren? [y/n]: " confirm
+print_info " - board/mscc/common/rootfs_overlay/ (with content)"
+print_info " - output/${1}/build/linux-custom/arch/arm/boot/dts/microchip/ (target for DTS/DTB)"
+print_info " - output/${1}/build/ (build directory)"
+print_info " - output/${1}/build/linux-custom/ (kernel build directory)"
+print_info " - output/${1}/images/ (images directory)"
+print_info " - BSP base directory ${2}"
+#print_info "Please confirm with 'y' and Enter to continue, or abort with 'n'."
+#read -r -p "Continue? [y/n]: " confirm
 #if [[ "$confirm" != "y" && "$confirm" != "Y" ]]; then
-#    print_info "Abbruch durch Benutzer."
+#    print_info "Aborted by user."
 #    exit 1
 #fi
 
@@ -66,7 +66,7 @@ BASE_DIR=${2}
 REPO_DIR=${3}
 
 
-# 1. post-build.sh erzeugen, falls nicht vorhanden
+# 1. Create post-build.sh if not present
 POST_BUILD_SH="post-build.sh"
 if [[ ! -f "$POST_BUILD_SH" ]]; then
     mkdir -p "$(dirname "$POST_BUILD_SH")"
@@ -116,108 +116,108 @@ echo "SSH configuration completed."
 echo "Root login enabled with password: microchip"
 EOSH
     chmod +x "$POST_BUILD_SH"
-    print_info "post-build.sh wurde automatisch erzeugt."
+    print_info "post-build.sh was created automatically."
 fi
 #!/usr/bin/env bash
 set -euo pipefail
 
 
-# 1. Initialisierung und Parameterprüfung
+# 1. Initialization and parameter check
 if [[ $# -ne 3 ]]; then
-    print_error "Genau drei Argumente (Build-Konfigurationsverzeichnis/BSP/Repo) erforderlich!"
+    print_error "Exactly three arguments (build config directory/BSP/repo) required!"
 fi
 
 BUILD_CONFIG="$1"
-echo "[DEBUG] BUILD_CONFIG: $BUILD_CONFIG"
+print_debug "BUILD_CONFIG: $BUILD_CONFIG"
 
 
-# Projekt-Root ist das Parent-Verzeichnis des Skriptverzeichnisses
+# Project root is the parent directory of the script directory
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-echo "[DEBUG] SCRIPT_DIR: $SCRIPT_DIR"
+print_debug "SCRIPT_DIR: $SCRIPT_DIR"
 PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
-echo "[DEBUG] PROJECT_ROOT: $PROJECT_ROOT"
+print_debug "PROJECT_ROOT: $PROJECT_ROOT"
 
-# Alle Buildroot/Output/Overlay-Pfade relativ zum Projekt-Root
+# All Buildroot/output/overlay paths relative to project root
 
 OUTPUT_DIR="$PROJECT_ROOT/$BASE_DIR/output/$BUILD_CONFIG"
-echo "[DEBUG] OUTPUT_DIR: $OUTPUT_DIR"
+print_debug "OUTPUT_DIR: $OUTPUT_DIR"
 BUILD_DIR="$OUTPUT_DIR"
-echo "[DEBUG] BUILD_DIR: $BUILD_DIR"
+print_debug "BUILD_DIR: $BUILD_DIR"
 KERNEL_BUILD_DIR="$BUILD_DIR/build/linux-custom"
-echo "[DEBUG] KERNEL_BUILD_DIR: $KERNEL_BUILD_DIR"
+print_debug "KERNEL_BUILD_DIR: $KERNEL_BUILD_DIR"
 TARGET_DTS_DIR="$KERNEL_BUILD_DIR/arch/arm/boot/dts/microchip"
-echo "[DEBUG] TARGET_DTS_DIR: $TARGET_DTS_DIR"
+print_debug "TARGET_DTS_DIR: $TARGET_DTS_DIR"
 IMAGES_DIR="$OUTPUT_DIR/images"
-echo "[DEBUG] IMAGES_DIR: $IMAGES_DIR"
+print_debug "IMAGES_DIR: $IMAGES_DIR"
 OVERLAY_SRC="$PROJECT_ROOT/$BASE_DIR/board/mscc/common/rootfs_overlay"
-echo "[DEBUG] OVERLAY_SRC: $OVERLAY_SRC"
+print_debug "OVERLAY_SRC: $OVERLAY_SRC"
 OVERLAY_DST="$OUTPUT_DIR/board/mscc/common/rootfs_overlay"
-echo "[DEBUG] OVERLAY_DST: $OVERLAY_DST"
+print_debug "OVERLAY_DST: $OVERLAY_DST"
 BUILDROOT_CONFIG="$OUTPUT_DIR/.config"
-echo "[DEBUG] BUILDROOT_CONFIG: $BUILDROOT_CONFIG"
+print_debug "BUILDROOT_CONFIG: $BUILDROOT_CONFIG"
 KERNEL_CONFIG="$KERNEL_BUILD_DIR/.config"
-echo "[DEBUG] KERNEL_CONFIG: $KERNEL_CONFIG"
+print_debug "KERNEL_CONFIG: $KERNEL_CONFIG"
 CHANGES_DOC="$SCRIPT_DIR/CHANGES_DOCUMENTATION.md"
-echo "[DEBUG] CHANGES_DOC: $CHANGES_DOC"
+print_debug "CHANGES_DOC: $CHANGES_DOC"
 
 
 SOURCE_DTS="$SCRIPT_DIR/lan966x-pcb8291.dts"
-echo "[DEBUG] SOURCE_DTS: $SOURCE_DTS"
+print_debug "SOURCE_DTS: $SOURCE_DTS"
 SOURCE_LAN865X="$SCRIPT_DIR/lan865x.c"
-echo "[DEBUG] SOURCE_LAN865X: $SOURCE_LAN865X"
+print_debug "SOURCE_LAN865X: $SOURCE_LAN865X"
 LINUX_CONFIG_SOURCE="$SCRIPT_DIR/linux.config"
-echo "[DEBUG] LINUX_CONFIG_SOURCE: $LINUX_CONFIG_SOURCE"
+print_debug "LINUX_CONFIG_SOURCE: $LINUX_CONFIG_SOURCE"
 BUILDROOT_CONFIG_SOURCE="$SCRIPT_DIR/buildroot.config"
-echo "[DEBUG] BUILDROOT_CONFIG_SOURCE: $BUILDROOT_CONFIG_SOURCE"
+print_debug "BUILDROOT_CONFIG_SOURCE: $BUILDROOT_CONFIG_SOURCE"
 TARGET_DTB="lan966x-pcb8291.dtb"
-echo "[DEBUG] TARGET_DTB: $TARGET_DTB"
+print_debug "TARGET_DTB: $TARGET_DTB"
 
 
-## 2. Eigene Konfigurationsdateien kopieren: bereits oben korrekt gesetzt
+## 2. Copy custom configuration files: already set correctly above
 LINUX_CONFIG_TARGET="$KERNEL_BUILD_DIR/.config"
 BUILDROOT_CONFIG_TARGET="$OUTPUT_DIR/.config"
 
 if [[ -f "$LINUX_CONFIG_SOURCE" ]]; then
     cp "$LINUX_CONFIG_SOURCE" "$LINUX_CONFIG_TARGET"
-    print_info "Eigene Linux-Kernel-Konfiguration kopiert."
+    print_info "Custom Linux kernel configuration copied."
 else
-    print_warning "Eigene Linux-Kernel-Konfiguration ($LINUX_CONFIG_SOURCE) nicht gefunden!"
+    print_warning "Custom Linux kernel configuration ($LINUX_CONFIG_SOURCE) not found!"
 fi
 
 if [[ -f "$BUILDROOT_CONFIG_SOURCE" ]]; then
     cp "$BUILDROOT_CONFIG_SOURCE" "$BUILDROOT_CONFIG_TARGET"
-    print_info "Eigene Buildroot-Konfiguration kopiert."
+    print_info "Custom Buildroot configuration copied."
 else
-    print_warning "Eigene Buildroot-Konfiguration ($BUILDROOT_CONFIG_SOURCE) nicht gefunden!"
+    print_warning "Custom Buildroot configuration ($BUILDROOT_CONFIG_SOURCE) not found!"
 fi
 
-# 3. Verzeichnis- und Dateiprüfungen
-[[ -f "$SOURCE_DTS" ]]      || print_error "SOURCE_DTS $SOURCE_DTS fehlt!"
-[[ -f "$SOURCE_LAN865X" ]]  || print_error "SOURCE_LAN865X $SOURCE_LAN865X fehlt!"
-[[ -d "$TARGET_DTS_DIR" ]]  || print_error "TARGET_DTS_DIR $TARGET_DTS_DIR fehlt!"
-[[ -d "$BUILD_DIR" ]]       || print_error "BUILD_DIR $BUILD_DIR fehlt!"
-[[ -d "$KERNEL_BUILD_DIR" ]]|| print_error "KERNEL_BUILD_DIR $KERNEL_BUILD_DIR fehlt!"
-[[ -d "$IMAGES_DIR" ]]      || print_error "IMAGES_DIR $IMAGES_DIR fehlt!"
+# 3. Directory and file checks
+[[ -f "$SOURCE_DTS" ]]      || print_error "SOURCE_DTS $SOURCE_DTS is missing!"
+[[ -f "$SOURCE_LAN865X" ]]  || print_error "SOURCE_LAN865X $SOURCE_LAN865X is missing!"
+[[ -d "$TARGET_DTS_DIR" ]]  || print_error "TARGET_DTS_DIR $TARGET_DTS_DIR is missing!"
+[[ -d "$BUILD_DIR" ]]       || print_error "BUILD_DIR $BUILD_DIR is missing!"
+[[ -d "$KERNEL_BUILD_DIR" ]]|| print_error "KERNEL_BUILD_DIR $KERNEL_BUILD_DIR is missing!"
+[[ -d "$IMAGES_DIR" ]]      || print_error "IMAGES_DIR $IMAGES_DIR is missing!"
 
-print_info "Verzeichnis- und Dateiprüfungen erfolgreich."
+print_info "Directory and file checks successful."
 
-# 4. Device Tree kopieren und alte DTBs entfernen
+# 4. Copy device tree and remove old DTBs
 cp "$SOURCE_DTS" "$TARGET_DTS_DIR/"
 rm -f "$TARGET_DTS_DIR/$TARGET_DTB" "$IMAGES_DIR/$TARGET_DTB"
-print_info "Device Tree kopiert und alte DTBs entfernt."
+print_info "Device tree copied and old DTBs removed."
 
 
 
-# 5. Overlay kopieren und prüfen
+# 5. Copy and check overlay
 if [[ -d "$OVERLAY_SRC" ]]; then
     mkdir -p "$(dirname "$OVERLAY_DST")"
     rm -rf "$OVERLAY_DST"
     cp -a "$OVERLAY_SRC" "$OVERLAY_DST"
-    print_info "Overlay kopiert (Ziel vorher gelöscht)."
-    # Prüfungen werden am Ende des Skripts ausgeführt
+    print_info "Overlay copied (target deleted before)."
+    # Checks are performed at the end of the script
 
-    # Dropbear-Konfiguration für Entwicklung setzen
+    # Set Dropbear configuration for development
     DROPBEAR_CONF_PATH="$OVERLAY_DST/etc/dropbear/dropbear.conf"
     mkdir -p "$(dirname "$DROPBEAR_CONF_PATH")"
     echo "# Dropbear SSH configuration for LAN8651 development" > "$DROPBEAR_CONF_PATH"
@@ -225,18 +225,18 @@ if [[ -d "$OVERLAY_SRC" ]]; then
     echo "" >> "$DROPBEAR_CONF_PATH"
     echo "# Enable root login and password authentication" >> "$DROPBEAR_CONF_PATH"
     echo "DROPBEAR_ARGS=\"\"" >> "$DROPBEAR_CONF_PATH"
-    print_info "Dropbear-Konfiguration für Entwicklung gesetzt: $DROPBEAR_CONF_PATH"
+    print_info "Dropbear configuration for development set: $DROPBEAR_CONF_PATH"
 else
-    print_warning "Overlay-Quelle $OVERLAY_SRC nicht gefunden!"
+    print_warning "Overlay source $OVERLAY_SRC not found!"
 fi
 
-# 6. Kernel-Treiberdatei aktualisieren
+# 6. Update kernel driver file
 LAN865X_TARGET="$KERNEL_BUILD_DIR/drivers/net/ethernet/microchip/lan865x/lan865x.c"
 cp "$SOURCE_LAN865X" "$LAN865X_TARGET"
-print_info "LAN865x-Treiberdatei aktualisiert."
+print_info "LAN865x driver file updated."
 
-# 7. Ethernet-Schnittstellen einrichten (per Overlay)
-# 7. Ethernet-Schnittstellen einrichten (per Overlay, direkt im Quell-Overlay)
+# 7. Set up Ethernet interfaces (via overlay)
+# 7. Set up Ethernet interfaces (via overlay, directly in the source overlay)
 ETH_OVERLAY_SRC="$PROJECT_ROOT/$BASE_DIR/board/mscc/common/rootfs_overlay/etc/network/interfaces"
 mkdir -p "$(dirname "$ETH_OVERLAY_SRC")"
 cat > "$ETH_OVERLAY_SRC" <<EOF
@@ -256,15 +256,15 @@ iface eth2 inet static
     netmask 255.255.0.0
 EOF
 
-print_info "Ethernet-Interfaces im Quell-Overlay eingerichtet: $ETH_OVERLAY_SRC"
+print_info "Ethernet interfaces set up in source overlay: $ETH_OVERLAY_SRC"
 
 
-# 7.1. Init-Skript für lan865x-Modul-Autoload (BusyBox init workaround) im Quell-Overlay erzeugen
+# 7.1. Create init script for lan865x module autoload (BusyBox init workaround) in the source overlay
 INITD_SCRIPT_SRC="$PROJECT_ROOT/$BASE_DIR/board/mscc/common/rootfs_overlay/etc/init.d/S09lan865xmodprobe"
 mkdir -p "$(dirname "$INITD_SCRIPT_SRC")"
 cat > "$INITD_SCRIPT_SRC" <<'EOS'
 #!/bin/sh
-# Startscript für lan865x Kernelmodul (BusyBox init-kompatibel)
+# Startup script for lan865x kernel module (BusyBox init compatible)
 ### BEGIN INIT INFO
 # Provides:          lan865xmodprobe
 # Required-Start:    $all
@@ -277,15 +277,15 @@ cat > "$INITD_SCRIPT_SRC" <<'EOS'
 case "$1" in
     start|default)
         if ! lsmod | grep -q '^lan865x'; then
-            echo "[lan865xmodprobe] Lade lan865x Kernelmodul..."
-            modprobe lan865x && echo "[lan865xmodprobe] lan865x geladen." || echo "[lan865xmodprobe] Fehler beim Laden von lan865x!"
+            echo "[lan865xmodprobe] Loading lan865x kernel module..."
+            modprobe lan865x && echo "[lan865xmodprobe] lan865x loaded." || echo "[lan865xmodprobe] Error loading lan865x!"
         else
-            echo "[lan865xmodprobe] lan865x bereits geladen."
+            echo "[lan865xmodprobe] lan865x already loaded."
         fi
         ;;
     stop)
         if lsmod | grep -q '^lan865x'; then
-            echo "[lan865xmodprobe] Entlade lan865x Kernelmodul..."
+            echo "[lan865xmodprobe] Unloading lan865x kernel module..."
             modprobe -r lan865x || rmmod lan865x || true
         fi
         ;;
@@ -297,98 +297,96 @@ esac
 exit 0
 EOS
 chmod +x "$INITD_SCRIPT_SRC"
-print_info "Init-Skript für lan865x-Modul-Autoload erzeugt: $INITD_SCRIPT_SRC"
+print_info "Init script for lan865x module autoload created: $INITD_SCRIPT_SRC"
 
-# 8. Ladeskript für das Target im Quell-Overlay erzeugen
+# 8. Create load script for the target in the source overlay
 LOAD_SCRIPT_SRC="$PROJECT_ROOT/$BASE_DIR/board/mscc/common/rootfs_overlay/root/load_lan865x.sh"
 mkdir -p "$(dirname "$LOAD_SCRIPT_SRC")"
 cat > "$LOAD_SCRIPT_SRC" <<'EOS'
 #!/bin/sh
 set -e
 if lsmod | grep -q lan865x; then
-    echo "Entlade altes lan865x-Modul..."
+    echo "Unloading old lan865x module..."
     modprobe -r lan865x || rmmod lan865x || true
 fi
-echo "Lade neues lan865x-Modul..."
-modprobe lan865x && echo "lan865x geladen." || echo "Fehler beim Laden von lan865x!"
+echo "Loading new lan865x module..."
+modprobe lan865x && echo "lan865x loaded." || echo "Error loading lan865x!"
 EOS
 chmod +x "$LOAD_SCRIPT_SRC"
-print_info "Ladeskript $LOAD_SCRIPT_SRC erzeugt."
+print_info "Load script $LOAD_SCRIPT_SRC created."
 
-# 9. Kernelmodul-Autoload (Overlay)
+# 9. Kernel module autoload (overlay)
 MODULES_LOAD="$OVERLAY_DST/etc/modules-load.d/lan865x.conf"
 mkdir -p "$(dirname "$MODULES_LOAD")"
 pwd
 LAN865X_CONF_PATH="$OUTPUT_DIR/board/mscc/common/rootfs_overlay/etc/modules-load.d/lan865x.conf"
 echo "lan865x" > "$LAN865X_CONF_PATH"
-echo "[INFO] Autoload für lan865x-Modul eingerichtet: $LAN865X_CONF_PATH"
+echo "[INFO] Autoload for lan865x module set up: $LAN865X_CONF_PATH"
 echo "lan865x" > "$MODULES_LOAD"
-print_info "Autoload für lan865x-Modul eingerichtet."
+print_info "Autoload for lan865x module set up."
 
-# 10. Build ausführen
+# 10. Run build
 cd "$OUTPUT_DIR"
-print_info "Starte Build: make linux-reconfigure"
-make linux-reconfigure || print_error "make linux-reconfigure fehlgeschlagen!"
-print_info "Starte Build: make"
-make || print_error "make fehlgeschlagen!"
+print_info "Starting build: make linux-reconfigure"
+make linux-reconfigure || print_error "make linux-reconfigure failed!"
+print_info "Starting build: make"
+make || print_error "make failed!"
 
 
-# 10.1. DTB-Prüfung
+# 10.1. DTB check
 DTB_PATH="$OUTPUT_DIR/images/$TARGET_DTB"
-print_info "[DEBUG] Arbeitsverzeichnis: $(pwd)"
-print_info "[DEBUG] Prüfe DTB_PATH: $DTB_PATH"
+print_info "Working Directory: $(pwd)"
+print_info "Check DTB_PATH: $DTB_PATH"
 if [[ ! -f "$DTB_PATH" ]]; then
-    print_error "Neue DTB $DTB_PATH nicht gefunden!"
+    print_error "New DTB $DTB_PATH not found!"
 fi
-print_info "Neue DTB gefunden."
+print_info "New DTB found."
 
-# 10.2. dtc-Prüfung
-print_info "[DEBUG] Prüfe mit dtc: $DTB_PATH"
+# 10.2. dtc check
+print_info "Prüfe mit dtc: $DTB_PATH"
 if ! dtc -I dtb -O dts -o - "$DTB_PATH" | grep -q 'microchip,lan8651'; then
-    print_error "DTB enthält nicht 'microchip,lan8651'!"
+    print_error "DTB does not contain 'microchip,lan8651'!"
 fi
-print_info "DTB enthält 'microchip,lan8651'."
+print_info "DTB contains 'microchip,lan8651'."
 
 cd "$SCRIPT_DIR"
-print_info "[DEBUG] Arbeitsverzeichnis: $(pwd)"
-echo PWD:::: 
-pwd
+print_info "Working Directory: $(pwd)"
 
-# 10.3. SSH-Prüfung (nur dropbear.conf, absoluter Pfad)
+# 10.3. SSH check (only dropbear.conf, absolute path)
 DROPBEAR_CONF_ABS="$OVERLAY_DST/etc/dropbear/dropbear.conf"
-print_info "[DEBUG] Prüfe DROPBEAR_CONF_ABS: $DROPBEAR_CONF_ABS"
+print_info "Check DROPBEAR_CONF_ABS: $DROPBEAR_CONF_ABS"
 if [[ -f "$DROPBEAR_CONF_ABS" ]]; then
-    print_info "Dropbear-Konfiguration im Overlay vorhanden (absoluter Pfad)."
+    print_info "Dropbear-Konfiguration in Overlay available (absolute path)."
 else
-    print_warning "Dropbear-Konfiguration im Overlay fehlt (absoluter Pfad)!"
+    print_warning "Dropbear configuration missing in overlay (absolute path)!"
 fi
 
-# 10.4. Kernelmodul-Autoload-Prüfung
-print_info "[DEBUG] Prüfe MODULES_LOAD_PATH: $OVERLAY_DST/etc/modules-load.d/lan865x.conf"
+# 10.4. Kernelmodule-Autoload-Check
+print_info "Check MODULES_LOAD_PATH: $OVERLAY_DST/etc/modules-load.d/lan865x.conf"
 if grep -q 'lan865x' "$OVERLAY_DST/etc/modules-load.d/lan865x.conf"; then
-    print_info "Autoload-Eintrag für lan865x vorhanden."
+    print_info "Autoload-Eintrag fr lan865x vorhanden."
 else
-    print_warning "Kein Autoload-Eintrag für lan865x gefunden!"
+    print_warning "No autoload entry for lan865x found!"
 fi
 
-# 10.5. SSH-Prüfung (nur Overlay-Prüfung)
-print_info "[DEBUG] Prüfe SSH-Konfiguration: $OVERLAY_DST/etc/default/dropbear und $OVERLAY_DST/etc/dropbear/dropbear.conf"
+# 10.5. SSH-Chcek (only Overlay-test)
+print_info "Check SSH-Konfiguration: $OVERLAY_DST/etc/default/dropbear und $OVERLAY_DST/etc/dropbear/dropbear.conf"
 if [[ -f "$OVERLAY_DST/etc/default/dropbear" && -f "$OVERLAY_DST/etc/dropbear/dropbear.conf" ]]; then
-    print_info "SSH-Konfiguration im Overlay vorhanden."
+    print_info "SSH-Configuration in Overlay available."
 else
-    print_warning "SSH-Konfiguration im Overlay unvollständig!"
+    print_warning "SSH configuration in overlay is incomplete!"
 fi
 
-# 10.6. Kernelmodul-Autoload-Prüfung
-print_info "[DEBUG] Prüfe Autoload: $MODULES_LOAD"
+# 10.6. Kernelmodule-Autoload-Check (absolute path)
+print_info "Check Autoload: $MODULES_LOAD"
 if grep -q 'lan865x' "$MODULES_LOAD"; then
-    print_info "Autoload-Eintrag für lan865x vorhanden."
+    print_info "Autoload-Entry lan865x available."
 else
-    print_warning "Kein Autoload-Eintrag für lan865x gefunden!"
+    print_warning "No Autoload-Entry found for lan865x!"
 fi
 
 
-print_info "Patch-Skript erfolgreich abgeschlossen. Das Build ist jetzt für LAN8651-Entwicklung vorbereitet."
+print_info "Patch script completed successfully. The build is now prepared for LAN8651 development."
 
 LAN865X_KO_SRC="$OUTPUT_DIR/build/linux-custom/drivers/net/ethernet/microchip/lan865x/lan865x.ko"
 LAN865X_KO_DST="/mnt/c/Users/M91221/work/lan9662/lan865x.ko"
