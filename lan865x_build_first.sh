@@ -1,153 +1,159 @@
 #!/bin/bash
-# 1. Initialisierung und Hilfsfunktionen
+#!/bin/bash
+# 1. Initialization and helper functions
+
 set -euo pipefail
 
 
 BSP_VERSION="mchp-brsdk-source-2025.12.tar.gz"
 MY_CONFIG="mybuild"
 
-## Farbige Ausgaben
+
+## Colored output
 print_info()    { echo -e "\033[1;36m[INFO]\033[0m $*"; }
 print_warning() { echo -e "\033[1;33m[WARN]\033[0m $*"; }
 print_error()   { echo -e "\033[1;31m[ERROR]\033[0m $*"; exit 1; }
 
 # Startverzeichnis sichern
 
-# 2. Startverzeichnis sichern
+
+# 2. Save start directory
 REPO_DIR="$(pwd)"
 trap 'cd "$REPO_DIR"' EXIT
 
 
-print_info "Starte Skript in: $REPO_DIR"
-print_info "BSP Version: $BSP_VERSION"
+
+print_info "Starting script in: $REPO_DIR"
+print_info "BSP version: $BSP_VERSION"
 
 
 # -----------------------------------------------------------
 # 1. BSP herunterladen
 # -----------------------------------------------------------
 
-# 3. BSP-Archiv herunterladen (nur falls nicht vorhanden)
+# 3. Download BSP archive (only if not present)
 if [[ -f "$BSP_VERSION" ]]; then
-    print_info "BSP-Archiv bereits vorhanden: $BSP_VERSION – Download wird übersprungen."
+    print_info "BSP archive already present: $BSP_VERSION – skipping download."
 else
-    print_info "Lade LAN9662 Board Support Package herunter..."
+    print_info "Downloading LAN9662 Board Support Package..."
     BSP_URL="http://mscc-ent-open-source.s3-eu-west-1.amazonaws.com/public_root/bsp/$BSP_VERSION"
     if ! wget --progress=bar:force "$BSP_URL"; then
-        print_error "Download fehlgeschlagen: $BSP_URL"
+        print_error "Download failed: $BSP_URL"
         exit 1
     fi
     if [[ ! -f "$BSP_VERSION" ]]; then
-        print_error "Heruntergeladene Datei '$BSP_VERSION' wurde nicht gefunden!"
+        print_error "Downloaded file '$BSP_VERSION' not found!"
         exit 1
     fi
-    echo "Download erfolgreich: $BSP_VERSION"
+    echo "Download successful: $BSP_VERSION"
 fi
 
 
 # --- Prüfung: existiert das BSP-Archiv? ----------------------
 
-# 4. Prüfung: existiert das BSP-Archiv?
+# 4. Check: does the BSP archive exist?
 if [[ ! -f "$BSP_VERSION" ]]; then
-    print_error "BSP-Datei '$BSP_VERSION' nicht gefunden!"
+    print_error "BSP file '$BSP_VERSION' not found!"
     exit 1
 fi
 
 # --- Kopieren des Archivs ------------------------------------
 
-# 5. BSP-Archiv ins Parent-Verzeichnis kopieren (nur falls nicht vorhanden)
+# 5. Copy BSP archive to parent directory (only if not present)
 if [[ -f "../$BSP_VERSION" ]]; then
-    print_info "BSP-Archiv ist im Parent-Verzeichnis bereits vorhanden: ../$BSP_VERSION – Kopieren wird übersprungen."
+    print_info "BSP archive already present in parent directory: ../$BSP_VERSION – skipping copy."
 else
-    print_info "Kopiere BSP-Archiv nach .."
+    print_info "Copying BSP archive to parent directory..."
     cp "$BSP_VERSION" ./..
 fi
 
 
-# 6. Arbeitsverzeichnis ins Parent-Verzeichnis wechseln
+# 6. Change working directory to parent directory
 cd ..
 
 # --- Archiv entpacken ----------------------------------------
 
 # --- Verzeichnis ermitteln ------------------------------------
 
-# 7. Name des entpackten BSP-Verzeichnisses bestimmen
+# 7. Determine name of extracted BSP directory
 BSP_DIR="${BSP_VERSION%.tar.gz}"
 
 
-# 8. BSP-Archiv entpacken (nur falls nicht bereits entpackt)
+# 8. Extract BSP archive (only if not already extracted)
 if [[ -d "$BSP_DIR" ]]; then
-    print_info "BSP-Verzeichnis bereits entpackt: $BSP_DIR – Entpacken wird übersprungen."
+    print_info "BSP directory already extracted: $BSP_DIR – skipping extraction."
 else
-    print_info "Entpacke BSP: $BSP_VERSION"
+    print_info "Extracting BSP: $BSP_VERSION"
     if ! tar -xvzf "$BSP_VERSION"; then
-        print_error "Fehler beim Entpacken von $BSP_VERSION"
+        print_error "Error extracting $BSP_VERSION"
         exit 1
     fi
 fi
 
 
-# 9. Prüfung: Wurde das BSP-Verzeichnis korrekt entpackt?
+# 9. Check: was the BSP directory extracted correctly?
 if [[ ! -d "$BSP_DIR" ]]; then
-    print_error "Nach dem Entpacken wurde das Verzeichnis '$BSP_DIR' nicht gefunden!"
+    print_error "After extraction, directory '$BSP_DIR' not found!"
     exit 1
 fi
 
 
-print_info "BSP erfolgreich extrahiert: $BSP_DIR"
+
+print_info "BSP successfully extracted: $BSP_DIR"
 
 # --- Build starten --------------------------------------------
 
-# 10. In das BSP-Verzeichnis wechseln
+# 10. Change into BSP directory
 cd "$BSP_DIR"
 
 
-# 11. Buildroot-Konfiguration erzeugen (defconfig, nur falls nicht vorhanden)
+# 11. Generate Buildroot configuration (defconfig, only if not present)
 if [[ -d "./output/$MY_CONFIG" ]]; then
-    print_info "Build-Output-Verzeichnis ./output/$MY_CONFIG ist bereits vorhanden – 'make ... defconfig' wird übersprungen."
+    print_info "Build output directory ./output/$MY_CONFIG already exists – skipping 'make ... defconfig'."
 else
-    print_info "Führe 'make ... defconfig' aus"
+    print_info "Running 'make ... defconfig'"
     if ! make BR2_EXTERNAL=./external O=./output/$MY_CONFIG arm_standalone_defconfig; then
-        print_error "make defconfig fehlgeschlagen!"
+        print_error "make defconfig failed!"
         exit 1
     fi
 fi
 
-# 12. Prüfung: Build-Output-Verzeichnis vorhanden?
+# 12. Check: is build output directory present?
 if [[ ! -d "./output/$MY_CONFIG" ]]; then
-    print_error "Build-Output-Verzeichnis './output/$MY_CONFIG' wurde nicht erzeugt!"
+    print_error "Build output directory './output/$MY_CONFIG' was not created!"
     exit 1
 fi
 
-# 13. In das Build-Output-Verzeichnis wechseln
+# 13. Change into build output directory
 cd "./output/$MY_CONFIG"
 
-# 14. Build ausführen (nur falls Images noch nicht existieren)
+# 14. Run build (only if images do not already exist)
 if [[ -d "./images" ]]; then
-    print_info "Image-Ordner ./images ist bereits vorhanden – Build wird übersprungen."
+    print_info "Image folder ./images already exists – skipping build."
 else
-    print_info "Starte Build (make)"
+    print_info "Starting build (make)"
     if ! make; then
-        print_error "make build fehlgeschlagen!"
+        print_error "make build failed!"
         exit 1
     fi
-    print_info "Build erfolgreich abgeschlossen."
+    print_info "Build completed successfully."
 fi
 
 # --- Zurück zu REPO_DIR und Patch anwenden ------------------------
 
-# 15. Zurück ins ursprüngliche Repository-Verzeichnis wechseln
+# 15. Change back to original repository directory
 cd "$REPO_DIR"
-print_info "Jetzt wird der Patch angewendet von $REPO_DIR aus "
+print_info "Now applying the patch from $REPO_DIR"
 
-# 16. Prüfung: Patch-Skript vorhanden und ausführbar?
+# 16. Check: is patch script present and executable?
 if [[ ! -x "./patch_bsp_lan8651.sh" ]]; then
-    print_error "Patch-Skript 'patch_bsp_lan8651.sh' nicht gefunden oder nicht ausführbar!"
+    print_error "Patch script 'patch_bsp_lan8651.sh' not found or not executable!"
     exit 1
 fi
 
-# 17. Patch-Skript ausführen
-print_info "Starte Patch-Skript"
+# 17. Run patch script
+print_info "Starting patch script"
 ./patch_bsp_lan8651.sh "$MY_CONFIG" "$BSP_DIR" $REPO_DIR
 
-print_info "Skript erfolgreich abgeschlossen."
+print_info "Script completed successfully."
 

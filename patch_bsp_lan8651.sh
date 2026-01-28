@@ -394,8 +394,18 @@ LAN865X_KO_SRC="$OUTPUT_DIR/build/linux-custom/drivers/net/ethernet/microchip/la
 LAN865X_KO_DST="/mnt/c/Users/M91221/work/lan9662/lan865x.ko"
 if [[ -f "$LAN865X_KO_SRC" ]]; then
     cp "$LAN865X_KO_SRC" "$LAN865X_KO_DST"
-    print_info "lan865x.ko wurde nach $LAN865X_KO_DST kopiert."
+    print_info "lan865x.ko was copied to $LAN865X_KO_DST."
 else
-    print_warning "lan865x.ko nicht gefunden: $LAN865X_KO_SRC"
+    print_warning "lan865x.ko not found: $LAN865X_KO_SRC"
+fi
+
+# Copy brsdk_standalone_arm.ext4.gz to the same destination directory
+BRSKD_IMAGE_SRC="/home/martin/AIoT/work/mchp-brsdk-source-2025.12/output/mybuild/images/brsdk_standalone_arm.ext4.gz"
+BRSKD_IMAGE_DST="/mnt/c/Users/M91221/work/lan9662/brsdk_standalone_arm.ext4.gz"
+if [[ -f "$BRSKD_IMAGE_SRC" ]]; then
+    cp "$BRSKD_IMAGE_SRC" "$BRSKD_IMAGE_DST"
+    print_info "brsdk_standalone_arm.ext4.gz was copied to $BRSKD_IMAGE_DST."
+else
+    print_warning "brsdk_standalone_arm.ext4.gz not found: $BRSKD_IMAGE_SRC"
 fi
 
