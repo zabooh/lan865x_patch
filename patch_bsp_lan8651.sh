@@ -54,15 +54,20 @@ print_info " - output/${1}/build/linux-custom/arch/arm/boot/dts/microchip/ (Ziel
 print_info " - output/${1}/build/ (Buildverzeichnis)"
 print_info " - output/${1}/build/linux-custom/ (Kernel-Buildverzeichnis)"
 print_info " - output/${1}/images/ (Imageverzeichnis)"
+print_info " - BSP Base Directory ${2}"
 print_info "Bitte bestätigen Sie mit 'y' und Enter, um fortzufahren, oder brechen Sie mit 'n' ab."
-read -r -p "Fortfahren? [y/n]: " confirm
-if [[ "$confirm" != "y" && "$confirm" != "Y" ]]; then
-    print_info "Abbruch durch Benutzer."
-    exit 1
-fi
+#read -r -p "Fortfahren? [y/n]: " confirm
+#if [[ "$confirm" != "y" && "$confirm" != "Y" ]]; then
+#    print_info "Abbruch durch Benutzer."
+#    exit 1
+#fi
+
+BASE_DIR=${2}
+REPO_DIR=${3}
+
 
 # 1. post-build.sh erzeugen, falls nicht vorhanden
-POST_BUILD_SH="../board/mscc/common/post-build.sh"
+POST_BUILD_SH="post-build.sh"
 if [[ ! -f "$POST_BUILD_SH" ]]; then
     mkdir -p "$(dirname "$POST_BUILD_SH")"
     cat > "$POST_BUILD_SH" <<'EOSH'
@@ -118,34 +123,55 @@ set -euo pipefail
 
 
 # 1. Initialisierung und Parameterprüfung
-if [[ $# -ne 1 ]]; then
-    print_error "Genau ein Argument (Build-Konfigurationsverzeichnis) erforderlich!"
+if [[ $# -ne 3 ]]; then
+    print_error "Genau drei Argumente (Build-Konfigurationsverzeichnis/BSP/Repo) erforderlich!"
 fi
+
 BUILD_CONFIG="$1"
+echo "[DEBUG] BUILD_CONFIG: $BUILD_CONFIG"
 
 
 # Projekt-Root ist das Parent-Verzeichnis des Skriptverzeichnisses
+
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+echo "[DEBUG] SCRIPT_DIR: $SCRIPT_DIR"
 PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
+echo "[DEBUG] PROJECT_ROOT: $PROJECT_ROOT"
 
 # Alle Buildroot/Output/Overlay-Pfade relativ zum Projekt-Root
-OUTPUT_DIR="$PROJECT_ROOT/output/$BUILD_CONFIG"
-BUILD_DIR="$OUTPUT_DIR/build"
-KERNEL_BUILD_DIR="$BUILD_DIR/linux-custom"
+
+OUTPUT_DIR="$PROJECT_ROOT/$BASE_DIR/output/$BUILD_CONFIG"
+echo "[DEBUG] OUTPUT_DIR: $OUTPUT_DIR"
+BUILD_DIR="$OUTPUT_DIR"
+echo "[DEBUG] BUILD_DIR: $BUILD_DIR"
+KERNEL_BUILD_DIR="$BUILD_DIR/build/linux-custom"
+echo "[DEBUG] KERNEL_BUILD_DIR: $KERNEL_BUILD_DIR"
 TARGET_DTS_DIR="$KERNEL_BUILD_DIR/arch/arm/boot/dts/microchip"
+echo "[DEBUG] TARGET_DTS_DIR: $TARGET_DTS_DIR"
 IMAGES_DIR="$OUTPUT_DIR/images"
-OVERLAY_SRC="$PROJECT_ROOT/board/mscc/common/rootfs_overlay"
+echo "[DEBUG] IMAGES_DIR: $IMAGES_DIR"
+OVERLAY_SRC="$PROJECT_ROOT/$BASE_DIR/board/mscc/common/rootfs_overlay"
+echo "[DEBUG] OVERLAY_SRC: $OVERLAY_SRC"
 OVERLAY_DST="$OUTPUT_DIR/board/mscc/common/rootfs_overlay"
+echo "[DEBUG] OVERLAY_DST: $OVERLAY_DST"
 BUILDROOT_CONFIG="$OUTPUT_DIR/.config"
+echo "[DEBUG] BUILDROOT_CONFIG: $BUILDROOT_CONFIG"
 KERNEL_CONFIG="$KERNEL_BUILD_DIR/.config"
+echo "[DEBUG] KERNEL_CONFIG: $KERNEL_CONFIG"
 CHANGES_DOC="$SCRIPT_DIR/CHANGES_DOCUMENTATION.md"
+echo "[DEBUG] CHANGES_DOC: $CHANGES_DOC"
 
-SOURCE_DTS="$SCRIPT_DIR/../lan966x-pcb8291.dts"
-SOURCE_LAN865X="$SCRIPT_DIR/../lan865x.c"
-LINUX_CONFIG_SOURCE="$SCRIPT_DIR/../linux.config"
-BUILDROOT_CONFIG_SOURCE="$SCRIPT_DIR/../buildroot.config"
+
+SOURCE_DTS="$SCRIPT_DIR/lan966x-pcb8291.dts"
+echo "[DEBUG] SOURCE_DTS: $SOURCE_DTS"
+SOURCE_LAN865X="$SCRIPT_DIR/lan865x.c"
+echo "[DEBUG] SOURCE_LAN865X: $SOURCE_LAN865X"
+LINUX_CONFIG_SOURCE="$SCRIPT_DIR/linux.config"
+echo "[DEBUG] LINUX_CONFIG_SOURCE: $LINUX_CONFIG_SOURCE"
+BUILDROOT_CONFIG_SOURCE="$SCRIPT_DIR/buildroot.config"
+echo "[DEBUG] BUILDROOT_CONFIG_SOURCE: $BUILDROOT_CONFIG_SOURCE"
 TARGET_DTB="lan966x-pcb8291.dtb"
-
+echo "[DEBUG] TARGET_DTB: $TARGET_DTB"
 
 
 ## 2. Eigene Konfigurationsdateien kopieren: bereits oben korrekt gesetzt
@@ -211,7 +237,7 @@ print_info "LAN865x-Treiberdatei aktualisiert."
 
 # 7. Ethernet-Schnittstellen einrichten (per Overlay)
 # 7. Ethernet-Schnittstellen einrichten (per Overlay, direkt im Quell-Overlay)
-ETH_OVERLAY_SRC="../board/mscc/common/rootfs_overlay/etc/network/interfaces"
+ETH_OVERLAY_SRC="$PROJECT_ROOT/$BASE_DIR/board/mscc/common/rootfs_overlay/etc/network/interfaces"
 mkdir -p "$(dirname "$ETH_OVERLAY_SRC")"
 cat > "$ETH_OVERLAY_SRC" <<EOF
 auto eth0
@@ -234,7 +260,7 @@ print_info "Ethernet-Interfaces im Quell-Overlay eingerichtet: $ETH_OVERLAY_SRC"
 
 
 # 7.1. Init-Skript für lan865x-Modul-Autoload (BusyBox init workaround) im Quell-Overlay erzeugen
-INITD_SCRIPT_SRC="../board/mscc/common/rootfs_overlay/etc/init.d/S09lan865xmodprobe"
+INITD_SCRIPT_SRC="$PROJECT_ROOT/$BASE_DIR/board/mscc/common/rootfs_overlay/etc/init.d/S09lan865xmodprobe"
 mkdir -p "$(dirname "$INITD_SCRIPT_SRC")"
 cat > "$INITD_SCRIPT_SRC" <<'EOS'
 #!/bin/sh
@@ -274,7 +300,7 @@ chmod +x "$INITD_SCRIPT_SRC"
 print_info "Init-Skript für lan865x-Modul-Autoload erzeugt: $INITD_SCRIPT_SRC"
 
 # 8. Ladeskript für das Target im Quell-Overlay erzeugen
-LOAD_SCRIPT_SRC="../board/mscc/common/rootfs_overlay/root/load_lan865x.sh"
+LOAD_SCRIPT_SRC="$PROJECT_ROOT/$BASE_DIR/board/mscc/common/rootfs_overlay/root/load_lan865x.sh"
 mkdir -p "$(dirname "$LOAD_SCRIPT_SRC")"
 cat > "$LOAD_SCRIPT_SRC" <<'EOS'
 #!/bin/sh
@@ -292,7 +318,8 @@ print_info "Ladeskript $LOAD_SCRIPT_SRC erzeugt."
 # 9. Kernelmodul-Autoload (Overlay)
 MODULES_LOAD="$OVERLAY_DST/etc/modules-load.d/lan865x.conf"
 mkdir -p "$(dirname "$MODULES_LOAD")"
-LAN865X_CONF_PATH="../output/${BUILD_CONFIG}/board/mscc/common/rootfs_overlay/etc/modules-load.d/lan865x.conf"
+pwd
+LAN865X_CONF_PATH="$OUTPUT_DIR/board/mscc/common/rootfs_overlay/etc/modules-load.d/lan865x.conf"
 echo "lan865x" > "$LAN865X_CONF_PATH"
 echo "[INFO] Autoload für lan865x-Modul eingerichtet: $LAN865X_CONF_PATH"
 echo "lan865x" > "$MODULES_LOAD"
@@ -363,7 +390,7 @@ fi
 
 print_info "Patch-Skript erfolgreich abgeschlossen. Das Build ist jetzt für LAN8651-Entwicklung vorbereitet."
 
-LAN865X_KO_SRC="../output/${BUILD_CONFIG}/build/linux-custom/drivers/net/ethernet/microchip/lan865x/lan865x.ko"
+LAN865X_KO_SRC="$OUTPUT_DIR/build/linux-custom/drivers/net/ethernet/microchip/lan865x/lan865x.ko"
 LAN865X_KO_DST="/mnt/c/Users/M91221/work/lan9662/lan865x.ko"
 if [[ -f "$LAN865X_KO_SRC" ]]; then
     cp "$LAN865X_KO_SRC" "$LAN865X_KO_DST"
