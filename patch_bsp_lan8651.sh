@@ -62,7 +62,7 @@ if [[ "$confirm" != "y" && "$confirm" != "Y" ]]; then
 fi
 
 # 1. post-build.sh erzeugen, falls nicht vorhanden
-POST_BUILD_SH="./board/mscc/common/post-build.sh"
+POST_BUILD_SH="../board/mscc/common/post-build.sh"
 if [[ ! -f "$POST_BUILD_SH" ]]; then
     mkdir -p "$(dirname "$POST_BUILD_SH")"
     cat > "$POST_BUILD_SH" <<'EOSH'
@@ -123,28 +123,32 @@ if [[ $# -ne 1 ]]; then
 fi
 BUILD_CONFIG="$1"
 
+
+# Projekt-Root ist das Parent-Verzeichnis des Skriptverzeichnisses
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-cd "$SCRIPT_DIR"
-BASE_DIR="."
-OUTPUT_DIR="./output/$BUILD_CONFIG"
+PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
+
+# Alle Buildroot/Output/Overlay-Pfade relativ zum Projekt-Root
+OUTPUT_DIR="$PROJECT_ROOT/output/$BUILD_CONFIG"
 BUILD_DIR="$OUTPUT_DIR/build"
 KERNEL_BUILD_DIR="$BUILD_DIR/linux-custom"
 TARGET_DTS_DIR="$KERNEL_BUILD_DIR/arch/arm/boot/dts/microchip"
 IMAGES_DIR="$OUTPUT_DIR/images"
-SOURCE_DTS="./lan966x-pcb8291.dts"
-SOURCE_LAN865X="./lan865x.c"
-TARGET_DTB="lan966x-pcb8291.dtb"
-OVERLAY_SRC="./board/mscc/common/rootfs_overlay"
+OVERLAY_SRC="$PROJECT_ROOT/board/mscc/common/rootfs_overlay"
 OVERLAY_DST="$OUTPUT_DIR/board/mscc/common/rootfs_overlay"
- BUILDROOT_CONFIG="$OUTPUT_DIR/.config"
+BUILDROOT_CONFIG="$OUTPUT_DIR/.config"
 KERNEL_CONFIG="$KERNEL_BUILD_DIR/.config"
-CHANGES_DOC="./CHANGES_DOCUMENTATION.md"
+CHANGES_DOC="$SCRIPT_DIR/CHANGES_DOCUMENTATION.md"
+
+SOURCE_DTS="$SCRIPT_DIR/../lan966x-pcb8291.dts"
+SOURCE_LAN865X="$SCRIPT_DIR/../lan865x.c"
+LINUX_CONFIG_SOURCE="$SCRIPT_DIR/../linux.config"
+BUILDROOT_CONFIG_SOURCE="$SCRIPT_DIR/../buildroot.config"
+TARGET_DTB="lan966x-pcb8291.dtb"
 
 
 
-# 2. Eigene Konfigurationsdateien kopieren
-LINUX_CONFIG_SOURCE="./linux.config"
-BUILDROOT_CONFIG_SOURCE="./buildroot.config"
+## 2. Eigene Konfigurationsdateien kopieren: bereits oben korrekt gesetzt
 LINUX_CONFIG_TARGET="$KERNEL_BUILD_DIR/.config"
 BUILDROOT_CONFIG_TARGET="$OUTPUT_DIR/.config"
 
@@ -207,7 +211,7 @@ print_info "LAN865x-Treiberdatei aktualisiert."
 
 # 7. Ethernet-Schnittstellen einrichten (per Overlay)
 # 7. Ethernet-Schnittstellen einrichten (per Overlay, direkt im Quell-Overlay)
-ETH_OVERLAY_SRC="./board/mscc/common/rootfs_overlay/etc/network/interfaces"
+ETH_OVERLAY_SRC="../board/mscc/common/rootfs_overlay/etc/network/interfaces"
 mkdir -p "$(dirname "$ETH_OVERLAY_SRC")"
 cat > "$ETH_OVERLAY_SRC" <<EOF
 auto eth0
@@ -230,7 +234,7 @@ print_info "Ethernet-Interfaces im Quell-Overlay eingerichtet: $ETH_OVERLAY_SRC"
 
 
 # 7.1. Init-Skript für lan865x-Modul-Autoload (BusyBox init workaround) im Quell-Overlay erzeugen
-INITD_SCRIPT_SRC="./board/mscc/common/rootfs_overlay/etc/init.d/S09lan865xmodprobe"
+INITD_SCRIPT_SRC="../board/mscc/common/rootfs_overlay/etc/init.d/S09lan865xmodprobe"
 mkdir -p "$(dirname "$INITD_SCRIPT_SRC")"
 cat > "$INITD_SCRIPT_SRC" <<'EOS'
 #!/bin/sh
@@ -270,7 +274,7 @@ chmod +x "$INITD_SCRIPT_SRC"
 print_info "Init-Skript für lan865x-Modul-Autoload erzeugt: $INITD_SCRIPT_SRC"
 
 # 8. Ladeskript für das Target im Quell-Overlay erzeugen
-LOAD_SCRIPT_SRC="./board/mscc/common/rootfs_overlay/root/load_lan865x.sh"
+LOAD_SCRIPT_SRC="../board/mscc/common/rootfs_overlay/root/load_lan865x.sh"
 mkdir -p "$(dirname "$LOAD_SCRIPT_SRC")"
 cat > "$LOAD_SCRIPT_SRC" <<'EOS'
 #!/bin/sh
@@ -288,7 +292,7 @@ print_info "Ladeskript $LOAD_SCRIPT_SRC erzeugt."
 # 9. Kernelmodul-Autoload (Overlay)
 MODULES_LOAD="$OVERLAY_DST/etc/modules-load.d/lan865x.conf"
 mkdir -p "$(dirname "$MODULES_LOAD")"
-LAN865X_CONF_PATH="./output/${BUILD_CONFIG}/board/mscc/common/rootfs_overlay/etc/modules-load.d/lan865x.conf"
+LAN865X_CONF_PATH="../output/${BUILD_CONFIG}/board/mscc/common/rootfs_overlay/etc/modules-load.d/lan865x.conf"
 echo "lan865x" > "$LAN865X_CONF_PATH"
 echo "[INFO] Autoload für lan865x-Modul eingerichtet: $LAN865X_CONF_PATH"
 echo "lan865x" > "$MODULES_LOAD"
@@ -303,7 +307,7 @@ make || print_error "make fehlgeschlagen!"
 
 
 # 10.1. DTB-Prüfung
-DTB_PATH="$SCRIPT_DIR/output/$BUILD_CONFIG/images/$TARGET_DTB"
+DTB_PATH="$OUTPUT_DIR/images/$TARGET_DTB"
 print_info "[DEBUG] Arbeitsverzeichnis: $(pwd)"
 print_info "[DEBUG] Prüfe DTB_PATH: $DTB_PATH"
 if [[ ! -f "$DTB_PATH" ]]; then
@@ -359,7 +363,7 @@ fi
 
 print_info "Patch-Skript erfolgreich abgeschlossen. Das Build ist jetzt für LAN8651-Entwicklung vorbereitet."
 
-LAN865X_KO_SRC="./output/${BUILD_CONFIG}/build/linux-custom/drivers/net/ethernet/microchip/lan865x/lan865x.ko"
+LAN865X_KO_SRC="../output/${BUILD_CONFIG}/build/linux-custom/drivers/net/ethernet/microchip/lan865x/lan865x.ko"
 LAN865X_KO_DST="/mnt/c/Users/M91221/work/lan9662/lan865x.ko"
 if [[ -f "$LAN865X_KO_SRC" ]]; then
     cp "$LAN865X_KO_SRC" "$LAN865X_KO_DST"
