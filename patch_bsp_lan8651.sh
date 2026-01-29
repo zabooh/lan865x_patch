@@ -66,11 +66,11 @@ BASE_DIR=${2}
 REPO_DIR=${3}
 
 
-# 1. Create post-build.sh if not present
-POST_BUILD_SH="post-build.sh"
-if [[ ! -f "$POST_BUILD_SH" ]]; then
-    mkdir -p "$(dirname "$POST_BUILD_SH")"
-    cat > "$POST_BUILD_SH" <<'EOSH'
+# 1. Create post-build.sh in BSP board/mscc/common/ if not present
+POST_BUILD_SH_BSP="$PROJECT_ROOT/$BASE_DIR/board/mscc/common/post-build.sh"
+if [[ ! -f "$POST_BUILD_SH_BSP" ]]; then
+    mkdir -p "$(dirname "$POST_BUILD_SH_BSP")"
+    cat > "$POST_BUILD_SH_BSP" <<'EOSH'
 #!/usr/bin/env bash
 set -euo pipefail
 
@@ -115,8 +115,8 @@ chmod 600 "$TARGET_DIR/etc/shadow" 2>/dev/null
 echo "SSH configuration completed."
 echo "Root login enabled with password: microchip"
 EOSH
-    chmod +x "$POST_BUILD_SH"
-    print_info "post-build.sh was created automatically."
+    chmod +x "$POST_BUILD_SH_BSP"
+    print_info "post-build.sh was created automatically in BSP board/mscc/common/."
 fi
 #!/usr/bin/env bash
 set -euo pipefail
