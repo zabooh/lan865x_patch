@@ -344,7 +344,7 @@ print_info "New DTB found."
 
 # 10.2. dtc check
 print_info "Prüfe mit dtc: $DTB_PATH"
-if ! dtc -I dtb -O dts -o - "$DTB_PATH" | grep -q 'microchip,lan8651'; then
+if ! dtc -I dtb -O dts -o - "$DTB_PATH" | grep -a -q 'microchip,lan8651'; then
     print_error "DTB does not contain 'microchip,lan8651'!"
 fi
 print_info "DTB contains 'microchip,lan8651'."
