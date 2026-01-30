@@ -103,8 +103,19 @@ print_info "BSP successfully extracted: $BSP_DIR"
 
 # --- Build starten --------------------------------------------
 
+
 # 10. Change into BSP directory
 cd "$BSP_DIR"
+
+# --- Kopiere linux.config an die erwarteten Stellen ---
+if [[ -f "$REPO_DIR/linux.config" ]]; then
+    cp "$REPO_DIR/linux.config" "board/microchip/standalone/arm_kernel.config"
+    print_info "linux.config wurde nach board/microchip/standalone/arm_kernel.config kopiert."
+    cp "$REPO_DIR/linux.config" ./linux.config
+    print_info "linux.config wurde zusätzlich ins BSP-Hauptverzeichnis kopiert."
+else
+    print_warning "linux.config nicht im Startverzeichnis gefunden!"
+fi
 
 
 # 11. Generate Buildroot configuration (defconfig, only if not present)
