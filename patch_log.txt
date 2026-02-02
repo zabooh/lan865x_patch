@@ -1,120 +1,114 @@
-==== 2026-02-02 12:07:35 ====
-[INFO] [2026-02-02 12:07:35] Starting script in: /home/martin/AIoT/work/lan865x_patch
-[INFO] [2026-02-02 12:07:35] BSP version: mchp-brsdk-source-2025.12.tar.gz
-[INFO] [2026-02-02 12:07:35] BSP archive already present: mchp-brsdk-source-2025.12.tar.gz – skipping download.
-[INFO] [2026-02-02 12:07:35] BSP archive already present in parent directory: ../mchp-brsdk-source-2025.12.tar.gz – skipping copy.
-[INFO] [2026-02-02 12:07:35] Changing working directory to parent directory...
-[INFO] [2026-02-02 12:07:35] Preparing to extract BSP archive...
-[INFO] [2026-02-02 12:07:35] BSP directory already extracted: mchp-brsdk-source-2025.12 skipping extraction.
-[INFO] [2026-02-02 12:07:35] Extraction completed.
-[INFO] [2026-02-02 12:07:35] Verifying extracted BSP directory...
-[INFO] [2026-02-02 12:07:35] Verification successful.
-[INFO] [2026-02-02 12:07:35] BSP successfully extracted: mchp-brsdk-source-2025.12
-[INFO] [2026-02-02 12:07:35] linux.config wurde nach board/microchip/standalone/arm_kernel.config kopiert.
-[INFO] [2026-02-02 12:07:35] linux.config wurde zusätzlich ins BSP-Hauptverzeichnis kopiert.
-[INFO] [2026-02-02 12:07:35] Build output directory ./output/mybuild already exists – skipping 'make ... defconfig'.
-[INFO] [2026-02-02 12:07:35] Image folder ./images already exists – skipping build.
-[INFO] [2026-02-02 12:07:35] Now applying the patch from /home/martin/AIoT/work/lan865x_patch
-[INFO] [2026-02-02 12:07:35] Starting patch script
-[INFO] [2026-02-02 12:07:35] # Changes for LAN8651 development
-[INFO] [2026-02-02 12:07:35] 
-[INFO] [2026-02-02 12:07:35] This document summarizes the changes and adjustments made for development with the LAN8651 Ethernet controller.
-[INFO] [2026-02-02 12:07:35] 
-[INFO] [2026-02-02 12:07:35] ## Build process changes
-[INFO] [2026-02-02 12:07:35] - Creation and adjustment of  to configure SSH access and root password.
-[INFO] [2026-02-02 12:07:35] - Copying custom kernel and Buildroot configuration files.
-[INFO] [2026-02-02 12:07:35] - Updating the device tree with LAN8651 support.
-[INFO] [2026-02-02 12:07:35] - Setting up a rootfs overlay with specific adjustments for Dropbear SSH and network interfaces.
-[INFO] [2026-02-02 12:07:35] - Updating the LAN865x kernel driver.
-[INFO] [2026-02-02 12:07:35] - Creating an init script for automatic loading of the LAN865x module at system startup.
-[INFO] [2026-02-02 12:07:35] - Creating a load script for manual loading of the LAN865x module on the target system.
-[INFO] [2026-02-02 12:07:35] 
-[INFO] [2026-02-02 12:07:35] ## Important files
-[INFO] [2026-02-02 12:07:35] - : Configures SSH access and root password.
-[INFO] [2026-02-02 12:07:35] - : Device tree source file with LAN8651 support.
-[INFO] [2026-02-02 12:07:35] - : Updated kernel driver file for the LAN865x Ethernet controller.
-[INFO] [2026-02-02 12:07:35] - : Script to load the LAN865x kernel module on the target.
-[INFO] [2026-02-02 12:07:35] - : Init script for automatic loading of the LAN865x module at boot.
-[INFO] [2026-02-02 12:07:35] 
-[INFO] [2026-02-02 12:07:35] ## Notes
-[INFO] [2026-02-02 12:07:35] - The root user is configured by default with the password 'microchip'. It is recommended to change this password after development.
-[INFO] [2026-02-02 12:07:35] - Ensure that the Dropbear SSH configuration meets the security requirements of your environment.
-[INFO] [2026-02-02 12:07:35] This script performs the following steps:
-[INFO] [2026-02-02 12:07:35]  1. Create post-build.sh if not present
-[INFO] [2026-02-02 12:07:35]  2. Copy custom configuration files (kernel/Buildroot)
-[INFO] [2026-02-02 12:07:35]  3. Directory and file checks
-[INFO] [2026-02-02 12:07:35]  4. Copy device tree and remove old DTBs
-[INFO] [2026-02-02 12:07:35]  5. Copy and configure overlay (Dropbear, network)
-[INFO] [2026-02-02 12:07:35]  6. Update kernel driver file (lan865x.c)
-[INFO] [2026-02-02 12:07:35]  7. Set up Ethernet interfaces in the overlay
-[INFO] [2026-02-02 12:07:35]  8. Create load script for the target
-[INFO] [2026-02-02 12:07:35]  9. Set up kernel module autoload (overlay)
-[INFO] [2026-02-02 12:07:35] 10. Run build (make linux-reconfigure, make)
-[INFO] [2026-02-02 12:07:35] 11. Checks (DTB, overlay, Dropbear, autoload)
-[INFO] [2026-02-02 12:07:35] 12. Documentation of changes
-[INFO] [2026-02-02 12:07:35] The following files and directories are required:
-[INFO] [2026-02-02 12:07:35]  - lan966x-pcb8291.dts
-[INFO] [2026-02-02 12:07:35]  - lan865x.c
-[INFO] [2026-02-02 12:07:35]  - linux.config
-[INFO] [2026-02-02 12:07:35]  - buildroot.config
-[INFO] [2026-02-02 12:07:35]  - board/mscc/common/rootfs_overlay/ (with content)
-[INFO] [2026-02-02 12:07:35]  - output/mybuild/build/linux-custom/arch/arm/boot/dts/microchip/ (target for DTS/DTB)
-[INFO] [2026-02-02 12:07:35]  - output/mybuild/build/ (build directory)
-[INFO] [2026-02-02 12:07:35]  - output/mybuild/build/linux-custom/ (kernel build directory)
-[INFO] [2026-02-02 12:07:35]  - output/mybuild/images/ (images directory)
-[INFO] [2026-02-02 12:07:35]  - BSP base directory mchp-brsdk-source-2025.12
-[DEBG] [2026-02-02 12:07:35] SCRIPT_DIR: /home/martin/AIoT/work/lan865x_patch
-[DEBG] [2026-02-02 12:07:35] BASE_DIR: /home/martin/AIoT/work/mchp-brsdk-source-2025.12
-[INFO] [2026-02-02 12:07:35] (Re)creating post-build.sh in BSP: /home/martin/AIoT/work/mchp-brsdk-source-2025.12/board/mscc/common/post-build.sh
-[INFO] [2026-02-02 12:07:35] post-build.sh was created automatically in BSP board/mscc/common/.
-[DEBG] [2026-02-02 12:07:35] BUILD_CONFIG: mybuild
-[DEBG] [2026-02-02 12:07:35] SCRIPT_DIR: /home/martin/AIoT/work/lan865x_patch
-[DEBG] [2026-02-02 12:07:35] PROJECT_ROOT: /home/martin/AIoT/work
-[DEBG] [2026-02-02 12:07:35] OUTPUT_DIR: /home/martin/AIoT/work/mchp-brsdk-source-2025.12/output/mybuild
-[DEBG] [2026-02-02 12:07:35] BUILD_DIR: /home/martin/AIoT/work/mchp-brsdk-source-2025.12/output/mybuild
-[DEBG] [2026-02-02 12:07:35] KERNEL_BUILD_DIR: /home/martin/AIoT/work/mchp-brsdk-source-2025.12/output/mybuild/build/linux-custom
-[DEBG] [2026-02-02 12:07:35] TARGET_DTS_DIR: /home/martin/AIoT/work/mchp-brsdk-source-2025.12/output/mybuild/build/linux-custom/arch/arm/boot/dts/microchip
-[DEBG] [2026-02-02 12:07:35] IMAGES_DIR: /home/martin/AIoT/work/mchp-brsdk-source-2025.12/output/mybuild/images
-[DEBG] [2026-02-02 12:07:35] OVERLAY_SRC: /home/martin/AIoT/work/mchp-brsdk-source-2025.12/board/mscc/common/rootfs_overlay
-[DEBG] [2026-02-02 12:07:35] OVERLAY_DST: /home/martin/AIoT/work/mchp-brsdk-source-2025.12/output/mybuild/board/mscc/common/rootfs_overlay
-[DEBG] [2026-02-02 12:07:35] BUILDROOT_CONFIG: /home/martin/AIoT/work/mchp-brsdk-source-2025.12/output/mybuild/.config
-[DEBG] [2026-02-02 12:07:35] KERNEL_CONFIG: /home/martin/AIoT/work/mchp-brsdk-source-2025.12/output/mybuild/build/linux-custom/.config
-[DEBG] [2026-02-02 12:07:35] CHANGES_DOC: /home/martin/AIoT/work/lan865x_patch/CHANGES_DOCUMENTATION.md
-[DEBG] [2026-02-02 12:07:35] SOURCE_DTS: /home/martin/AIoT/work/lan865x_patch/lan966x-pcb8291.dts
-[DEBG] [2026-02-02 12:07:35] SOURCE_LAN865X: /home/martin/AIoT/work/lan865x_patch/lan865x.c
-[DEBG] [2026-02-02 12:07:35] SOURCE_MICROCHIP_T1S: /home/martin/AIoT/work/lan865x_patch/microchip_t1s.c
-[DEBG] [2026-02-02 12:07:35] LINUX_CONFIG_SOURCE: /home/martin/AIoT/work/lan865x_patch/linux.config
-[DEBG] [2026-02-02 12:07:35] BUILDROOT_CONFIG_SOURCE: /home/martin/AIoT/work/lan865x_patch/buildroot.config
-[DEBG] [2026-02-02 12:07:35] TARGET_DTB: lan966x-pcb8291.dtb
-[INFO] [2026-02-02 12:07:35] Custom Linux kernel configuration copied.
-[INFO] [2026-02-02 12:07:35] Custom Buildroot configuration copied.
-[INFO] [2026-02-02 12:07:35] Directory and file checks successful.
-[INFO] [2026-02-02 12:07:35] Device tree copied and old DTBs removed.
-[INFO] [2026-02-02 12:07:35] Overlay copied (target deleted before).
-[INFO] [2026-02-02 12:07:35] Dropbear configuration for development set: /home/martin/AIoT/work/mchp-brsdk-source-2025.12/output/mybuild/board/mscc/common/rootfs_overlay/etc/dropbear/dropbear.conf
-[INFO] [2026-02-02 12:07:35] LAN865x driver file updated.
-[INFO] [2026-02-02 12:07:35] Microchip T1S driver file updated.
-[INFO] [2026-02-02 12:07:35] Ethernet interfaces set up in source overlay: /home/martin/AIoT/work/mchp-brsdk-source-2025.12/board/mscc/common/rootfs_overlay/etc/network/interfaces
-[INFO] [2026-02-02 12:07:35] Init script for lan865x module autoload created: /home/martin/AIoT/work/mchp-brsdk-source-2025.12/board/mscc/common/rootfs_overlay/etc/init.d/S09lan865xmodprobe
-[INFO] [2026-02-02 12:07:35] Load script /home/martin/AIoT/work/mchp-brsdk-source-2025.12/board/mscc/common/rootfs_overlay/root/load_lan865x.sh created.
-[INFO] [2026-02-02 12:07:35] Autoload for lan865x module set up.
-[INFO] [2026-02-02 12:07:35] Starting build: make linux-reconfigure
-[INFO] [2026-02-02 12:08:38] Starting build: make
-[INFO] [2026-02-02 12:09:14] Working Directory: /home/martin/AIoT/work/mchp-brsdk-source-2025.12/output/mybuild
-[INFO] [2026-02-02 12:09:14] Check DTB_PATH: /home/martin/AIoT/work/mchp-brsdk-source-2025.12/output/mybuild/images/lan966x-pcb8291.dtb
-[INFO] [2026-02-02 12:09:14] New DTB found.
-[INFO] [2026-02-02 12:09:14] Prüfe mit dtc: /home/martin/AIoT/work/mchp-brsdk-source-2025.12/output/mybuild/images/lan966x-pcb8291.dtb
-[INFO] [2026-02-02 12:09:14] DTB contains 'microchip,lan8651'.
-[INFO] [2026-02-02 12:09:14] Working Directory: /home/martin/AIoT/work/lan865x_patch
-[INFO] [2026-02-02 12:09:14] Check DROPBEAR_CONF_ABS: /home/martin/AIoT/work/mchp-brsdk-source-2025.12/output/mybuild/board/mscc/common/rootfs_overlay/etc/dropbear/dropbear.conf
-[INFO] [2026-02-02 12:09:14] Dropbear-Konfiguration in Overlay available (absolute path).
-[INFO] [2026-02-02 12:09:14] Check MODULES_LOAD_PATH: /home/martin/AIoT/work/mchp-brsdk-source-2025.12/output/mybuild/board/mscc/common/rootfs_overlay/etc/modules-load.d/lan865x.conf
-[INFO] [2026-02-02 12:09:14] Autoload-Eintrag fr lan865x vorhanden.
-[INFO] [2026-02-02 12:09:14] Check SSH-Konfiguration: /home/martin/AIoT/work/mchp-brsdk-source-2025.12/output/mybuild/board/mscc/common/rootfs_overlay/etc/dropbear und /home/martin/AIoT/work/mchp-brsdk-source-2025.12/output/mybuild/board/mscc/common/rootfs_overlay/etc/dropbear/dropbear.conf
-[INFO] [2026-02-02 12:09:14] SSH-Configuration in Overlay available.
-[INFO] [2026-02-02 12:09:14] Check Autoload: /home/martin/AIoT/work/mchp-brsdk-source-2025.12/output/mybuild/board/mscc/common/rootfs_overlay/etc/modules-load.d/lan865x.conf
-[INFO] [2026-02-02 12:09:14] Autoload-Entry lan865x available.
-[WARN] [2026-02-02 12:09:14] lan865x.ko not found: /home/martin/AIoT/work/mchp-brsdk-source-2025.12/output/mybuild/build/linux-custom/drivers/net/ethernet/microchip/lan865x/lan865x.ko
-[INFO] [2026-02-02 12:09:15] brsdk_standalone_arm.ext4.gz was copied to /mnt/c/Users/M91221/work/lan9662/brsdk_standalone_arm.ext4.gz.
-[INFO] [2026-02-02 12:09:15] Patch script completed successfully. The build is now prepared for LAN8651 development.
-[INFO] [2026-02-02 12:09:15] Script completed successfully.
+==== 2026-02-02 13:18:28 ====
+[INFO] [2026-02-02 13:18:28] Starting script in: /home/martin/AIoT/work/lan865x_patch
+[INFO] [2026-02-02 13:18:28] BSP version: mchp-brsdk-source-2025.12.tar.gz
+[INFO] [2026-02-02 13:18:28] BSP archive already present: mchp-brsdk-source-2025.12.tar.gz – skipping download.
+[INFO] [2026-02-02 13:18:28] BSP archive already present in parent directory: ../mchp-brsdk-source-2025.12.tar.gz – skipping copy.
+[INFO] [2026-02-02 13:18:28] Changing working directory to parent directory...
+[INFO] [2026-02-02 13:18:28] Preparing to extract BSP archive...
+[INFO] [2026-02-02 13:18:28] BSP directory already extracted: mchp-brsdk-source-2025.12 skipping extraction.
+[INFO] [2026-02-02 13:18:28] Extraction completed.
+[INFO] [2026-02-02 13:18:28] Verifying extracted BSP directory...
+[INFO] [2026-02-02 13:18:28] Verification successful.
+[INFO] [2026-02-02 13:18:28] BSP successfully extracted: mchp-brsdk-source-2025.12
+[INFO] [2026-02-02 13:18:28] linux.config wurde nach board/microchip/standalone/arm_kernel.config kopiert.
+[INFO] [2026-02-02 13:18:28] linux.config wurde zusätzlich ins BSP-Hauptverzeichnis kopiert.
+[INFO] [2026-02-02 13:18:28] Build output directory ./output/mybuild already exists – skipping 'make ... defconfig'.
+[INFO] [2026-02-02 13:18:28] Image folder ./images already exists – skipping build.
+[INFO] [2026-02-02 13:18:28] Now applying the patch from /home/martin/AIoT/work/lan865x_patch
+[INFO] [2026-02-02 13:18:28] Starting patch script
+[INFO] [2026-02-02 13:18:28] # Changes for LAN8651 development
+[INFO] [2026-02-02 13:18:28] 
+[INFO] [2026-02-02 13:18:28] This document summarizes the changes and adjustments made for development with the LAN8651 Ethernet controller.
+[INFO] [2026-02-02 13:18:28] 
+[INFO] [2026-02-02 13:18:28] ## Build process changes
+[INFO] [2026-02-02 13:18:28] - Creation and adjustment of  to configure SSH access and root password.
+[INFO] [2026-02-02 13:18:28] - Copying custom kernel and Buildroot configuration files.
+[INFO] [2026-02-02 13:18:28] - Updating the device tree with LAN8651 support.
+[INFO] [2026-02-02 13:18:28] - Setting up a rootfs overlay with specific adjustments for Dropbear SSH and network interfaces.
+[INFO] [2026-02-02 13:18:28] - Updating the LAN865x kernel driver.
+[INFO] [2026-02-02 13:18:28] - Creating an init script for automatic loading of the LAN865x module at system startup.
+[INFO] [2026-02-02 13:18:28] - Creating a load script for manual loading of the LAN865x module on the target system.
+[INFO] [2026-02-02 13:18:28] 
+[INFO] [2026-02-02 13:18:28] ## Important files
+[INFO] [2026-02-02 13:18:28] - : Configures SSH access and root password.
+[INFO] [2026-02-02 13:18:28] - : Device tree source file with LAN8651 support.
+[INFO] [2026-02-02 13:18:28] - : Updated kernel driver file for the LAN865x Ethernet controller.
+[INFO] [2026-02-02 13:18:28] - : Script to load the LAN865x kernel module on the target.
+[INFO] [2026-02-02 13:18:28] - : Init script for automatic loading of the LAN865x module at boot.
+[INFO] [2026-02-02 13:18:28] 
+[INFO] [2026-02-02 13:18:28] ## Notes
+[INFO] [2026-02-02 13:18:28] - The root user is configured by default with the password 'microchip'. It is recommended to change this password after development.
+[INFO] [2026-02-02 13:18:28] - Ensure that the Dropbear SSH configuration meets the security requirements of your environment.
+[INFO] [2026-02-02 13:18:28] This script performs the following steps:
+[INFO] [2026-02-02 13:18:28]  1. Create post-build.sh if not present
+[INFO] [2026-02-02 13:18:28]  2. Copy custom configuration files (kernel/Buildroot)
+[INFO] [2026-02-02 13:18:28]  3. Directory and file checks
+[INFO] [2026-02-02 13:18:28]  4. Copy device tree and remove old DTBs
+[INFO] [2026-02-02 13:18:28]  5. Copy and configure overlay (Dropbear, network)
+[INFO] [2026-02-02 13:18:28]  6. Update kernel driver file (lan865x.c)
+[INFO] [2026-02-02 13:18:28]  7. Set up Ethernet interfaces in the overlay
+[INFO] [2026-02-02 13:18:28]  8. Create load script for the target
+[INFO] [2026-02-02 13:18:28]  9. Set up kernel module autoload (overlay)
+[INFO] [2026-02-02 13:18:28] 10. Run build (make linux-reconfigure, make)
+[INFO] [2026-02-02 13:18:28] 11. Checks (DTB, overlay, Dropbear, autoload)
+[INFO] [2026-02-02 13:18:28] 12. Documentation of changes
+[INFO] [2026-02-02 13:18:28] The following files and directories are required:
+[INFO] [2026-02-02 13:18:28]  - lan966x-pcb8291.dts
+[INFO] [2026-02-02 13:18:28]  - lan865x.c
+[INFO] [2026-02-02 13:18:28]  - linux.config
+[INFO] [2026-02-02 13:18:28]  - buildroot.config
+[INFO] [2026-02-02 13:18:28]  - board/mscc/common/rootfs_overlay/ (with content)
+[INFO] [2026-02-02 13:18:28]  - output/mybuild/build/linux-custom/arch/arm/boot/dts/microchip/ (target for DTS/DTB)
+[INFO] [2026-02-02 13:18:28]  - output/mybuild/build/ (build directory)
+[INFO] [2026-02-02 13:18:28]  - output/mybuild/build/linux-custom/ (kernel build directory)
+[INFO] [2026-02-02 13:18:28]  - output/mybuild/images/ (images directory)
+[INFO] [2026-02-02 13:18:28]  - BSP base directory mchp-brsdk-source-2025.12
+[DEBG] [2026-02-02 13:18:28] SCRIPT_DIR: /home/martin/AIoT/work/lan865x_patch
+[DEBG] [2026-02-02 13:18:28] BASE_DIR: /home/martin/AIoT/work/mchp-brsdk-source-2025.12
+[INFO] [2026-02-02 13:18:28] (Re)creating post-build.sh in BSP: /home/martin/AIoT/work/mchp-brsdk-source-2025.12/board/mscc/common/post-build.sh
+[INFO] [2026-02-02 13:18:28] post-build.sh was created automatically in BSP board/mscc/common/.
+[DEBG] [2026-02-02 13:18:28] BUILD_CONFIG: mybuild
+[DEBG] [2026-02-02 13:18:28] SCRIPT_DIR: /home/martin/AIoT/work/lan865x_patch
+[DEBG] [2026-02-02 13:18:28] PROJECT_ROOT: /home/martin/AIoT/work
+[DEBG] [2026-02-02 13:18:28] OUTPUT_DIR: /home/martin/AIoT/work/mchp-brsdk-source-2025.12/output/mybuild
+[DEBG] [2026-02-02 13:18:28] BUILD_DIR: /home/martin/AIoT/work/mchp-brsdk-source-2025.12/output/mybuild
+[DEBG] [2026-02-02 13:18:28] KERNEL_BUILD_DIR: /home/martin/AIoT/work/mchp-brsdk-source-2025.12/output/mybuild/build/linux-custom
+[DEBG] [2026-02-02 13:18:28] TARGET_DTS_DIR: /home/martin/AIoT/work/mchp-brsdk-source-2025.12/output/mybuild/build/linux-custom/arch/arm/boot/dts/microchip
+[DEBG] [2026-02-02 13:18:28] IMAGES_DIR: /home/martin/AIoT/work/mchp-brsdk-source-2025.12/output/mybuild/images
+[DEBG] [2026-02-02 13:18:28] OVERLAY_SRC: /home/martin/AIoT/work/mchp-brsdk-source-2025.12/board/mscc/common/rootfs_overlay
+[DEBG] [2026-02-02 13:18:28] BUILDROOT_CONFIG: /home/martin/AIoT/work/mchp-brsdk-source-2025.12/output/mybuild/.config
+[DEBG] [2026-02-02 13:18:28] KERNEL_CONFIG: /home/martin/AIoT/work/mchp-brsdk-source-2025.12/output/mybuild/build/linux-custom/.config
+[DEBG] [2026-02-02 13:18:28] CHANGES_DOC: /home/martin/AIoT/work/lan865x_patch/CHANGES_DOCUMENTATION.md
+[DEBG] [2026-02-02 13:18:28] SOURCE_DTS: /home/martin/AIoT/work/lan865x_patch/lan966x-pcb8291.dts
+[DEBG] [2026-02-02 13:18:28] SOURCE_LAN865X: /home/martin/AIoT/work/lan865x_patch/lan865x.c
+[DEBG] [2026-02-02 13:18:28] SOURCE_MICROCHIP_T1S: /home/martin/AIoT/work/lan865x_patch/microchip_t1s.c
+[DEBG] [2026-02-02 13:18:28] LINUX_CONFIG_SOURCE: /home/martin/AIoT/work/lan865x_patch/linux.config
+[DEBG] [2026-02-02 13:18:28] BUILDROOT_CONFIG_SOURCE: /home/martin/AIoT/work/lan865x_patch/buildroot.config
+[DEBG] [2026-02-02 13:18:28] TARGET_DTB: lan966x-pcb8291.dtb
+[INFO] [2026-02-02 13:18:28] Custom Linux kernel configuration copied.
+[INFO] [2026-02-02 13:18:28] Custom Buildroot configuration copied.
+[INFO] [2026-02-02 13:18:28] Directory and file checks successful.
+[INFO] [2026-02-02 13:18:28] Device tree copied and old DTBs removed.
+[INFO] [2026-02-02 13:18:28] Dropbear configuration for development set: /home/martin/AIoT/work/mchp-brsdk-source-2025.12/board/mscc/common/rootfs_overlay/etc/dropbear/dropbear.conf
+[INFO] [2026-02-02 13:18:28] LAN865x driver file updated.
+[INFO] [2026-02-02 13:18:28] Microchip T1S driver file updated.
+[INFO] [2026-02-02 13:18:28] Ethernet interfaces set up in source overlay: /home/martin/AIoT/work/mchp-brsdk-source-2025.12/board/mscc/common/rootfs_overlay/etc/network/interfaces
+[INFO] [2026-02-02 13:18:28] Init script for lan865x module autoload created: /home/martin/AIoT/work/mchp-brsdk-source-2025.12/board/mscc/common/rootfs_overlay/etc/init.d/S09lan865xmodprobe
+[INFO] [2026-02-02 13:18:28] Load script /home/martin/AIoT/work/mchp-brsdk-source-2025.12/board/mscc/common/rootfs_overlay/root/load_lan865x.sh created.
+[INFO] [2026-02-02 13:18:28] Autoload for lan865x module set up: /home/martin/AIoT/work/mchp-brsdk-source-2025.12/board/mscc/common/rootfs_overlay/etc/modules-load.d/lan865x.conf
+[INFO] [2026-02-02 13:18:28] Starting build: make linux-reconfigure
+[INFO] [2026-02-02 13:19:18] Starting build: make
+[INFO] [2026-02-02 13:19:54] Working Directory: /home/martin/AIoT/work/mchp-brsdk-source-2025.12/output/mybuild
+[INFO] [2026-02-02 13:19:54] Check DTB_PATH: /home/martin/AIoT/work/mchp-brsdk-source-2025.12/output/mybuild/images/lan966x-pcb8291.dtb
+[INFO] [2026-02-02 13:19:54] New DTB found.
+[INFO] [2026-02-02 13:19:54] Prüfe mit dtc: /home/martin/AIoT/work/mchp-brsdk-source-2025.12/output/mybuild/images/lan966x-pcb8291.dtb
+[INFO] [2026-02-02 13:19:54] DTB contains 'microchip,lan8651'.
+[INFO] [2026-02-02 13:19:54] Working Directory: /home/martin/AIoT/work/lan865x_patch
+[INFO] [2026-02-02 13:19:54] Check Autoload: /home/martin/AIoT/work/mchp-brsdk-source-2025.12/board/mscc/common/rootfs_overlay/etc/modules-load.d/lan865x.conf
+[INFO] [2026-02-02 13:19:54] Autoload-Entry lan865x available.
+[INFO] [2026-02-02 13:19:54] lan865x.ko was copied to /mnt/c/Users/M91221/work/lan9662/lan865x.ko.
+[INFO] [2026-02-02 13:19:54] dropbear.conf ist im Overlay vorhanden: /home/martin/AIoT/work/mchp-brsdk-source-2025.12/board/mscc/common/rootfs_overlay/etc/dropbear/dropbear.conf
+[INFO] [2026-02-02 13:19:54] lan865x.conf ist im Overlay vorhanden: /home/martin/AIoT/work/mchp-brsdk-source-2025.12/board/mscc/common/rootfs_overlay/etc/modules-load.d/lan865x.conf
+[INFO] [2026-02-02 13:19:54] brsdk_standalone_arm.ext4.gz was copied to /mnt/c/Users/M91221/work/lan9662/brsdk_standalone_arm.ext4.gz.
+[INFO] [2026-02-02 13:19:54] Patch script completed successfully. The build is now prepared for LAN8651 development.
+[INFO] [2026-02-02 13:19:54] Script completed successfully.

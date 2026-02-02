@@ -168,8 +168,6 @@ IMAGES_DIR="$OUTPUT_DIR/images"
 print_debug "IMAGES_DIR: $IMAGES_DIR"
 OVERLAY_SRC="$BASE_DIR/board/mscc/common/rootfs_overlay"
 print_debug "OVERLAY_SRC: $OVERLAY_SRC"
-OVERLAY_DST="$OUTPUT_DIR/board/mscc/common/rootfs_overlay"
-print_debug "OVERLAY_DST: $OVERLAY_DST"
 BUILDROOT_CONFIG="$OUTPUT_DIR/.config"
 print_debug "BUILDROOT_CONFIG: $BUILDROOT_CONFIG"
 KERNEL_CONFIG="$KERNEL_BUILD_DIR/.config"
@@ -230,16 +228,10 @@ print_info "Device tree copied and old DTBs removed."
 
 
 
-# 5. Copy and check overlay
+# 5. Erzeuge und prüfe Overlay-Dateien ausschließlich im Quell-Overlay
 if [[ -d "$OVERLAY_SRC" ]]; then
-    mkdir -p "$(dirname "$OVERLAY_DST")"
-    rm -rf "$OVERLAY_DST"
-    cp -a "$OVERLAY_SRC" "$OVERLAY_DST"
-    print_info "Overlay copied (target deleted before)."
-    # Checks are performed at the end of the script
-
-    # Set Dropbear configuration for development
-    DROPBEAR_CONF_PATH="$OVERLAY_DST/etc/dropbear/dropbear.conf"
+    # Set Dropbear configuration for development (im Quell-Overlay)
+    DROPBEAR_CONF_PATH="$OVERLAY_SRC/etc/dropbear/dropbear.conf"
     mkdir -p "$(dirname "$DROPBEAR_CONF_PATH")"
     echo "# Dropbear SSH configuration for LAN8651 development" > "$DROPBEAR_CONF_PATH"
     echo "# Allows root login and password authentication for development purposes" >> "$DROPBEAR_CONF_PATH"
@@ -339,15 +331,11 @@ EOS
 chmod +x "$LOAD_SCRIPT_SRC"
 print_info "Load script $LOAD_SCRIPT_SRC created."
 
-# 9. Kernel module autoload (overlay)
-MODULES_LOAD="$OVERLAY_DST/etc/modules-load.d/lan865x.conf"
+# 9. Kernel module autoload (overlay, nur im Quell-Overlay)
+MODULES_LOAD="$OVERLAY_SRC/etc/modules-load.d/lan865x.conf"
 mkdir -p "$(dirname "$MODULES_LOAD")"
-pwd
-LAN865X_CONF_PATH="$OUTPUT_DIR/board/mscc/common/rootfs_overlay/etc/modules-load.d/lan865x.conf"
-echo "lan865x" > "$LAN865X_CONF_PATH"
-echo "[INFO] Autoload for lan865x module set up: $LAN865X_CONF_PATH"
 echo "lan865x" > "$MODULES_LOAD"
-print_info "Autoload for lan865x module set up."
+print_info "Autoload for lan865x module set up: $MODULES_LOAD"
 
 # 10. Run build
 cd "$OUTPUT_DIR"
@@ -375,31 +363,7 @@ print_info "DTB contains 'microchip,lan8651'."
 
 cd "$SCRIPT_DIR"
 print_info "Working Directory: $(pwd)"
-
-# 10.3. SSH check (only dropbear.conf, absolute path)
-DROPBEAR_CONF_ABS="$OVERLAY_DST/etc/dropbear/dropbear.conf"
-print_info "Check DROPBEAR_CONF_ABS: $DROPBEAR_CONF_ABS"
-if [[ -f "$DROPBEAR_CONF_ABS" ]]; then
-    print_info "Dropbear-Konfiguration in Overlay available (absolute path)."
-else
-    print_warning "Dropbear configuration missing in overlay (absolute path)!"
-fi
-
-# 10.4. Kernelmodule-Autoload-Check
-print_info "Check MODULES_LOAD_PATH: $OVERLAY_DST/etc/modules-load.d/lan865x.conf"
-if grep -q 'lan865x' "$OVERLAY_DST/etc/modules-load.d/lan865x.conf"; then
-    print_info "Autoload-Eintrag fr lan865x vorhanden."
-else
-    print_warning "No autoload entry for lan865x found!"
-fi
-
-# 10.5. SSH-Check (only Overlay-test)
-print_info "Check SSH-Konfiguration: $OVERLAY_DST/etc/dropbear und $OVERLAY_DST/etc/dropbear/dropbear.conf"
-if [[ -d "$OVERLAY_DST/etc/dropbear" && -f "$OVERLAY_DST/etc/dropbear/dropbear.conf" ]]; then
-    print_info "SSH-Configuration in Overlay available."
-else
-    print_warning "SSH configuration in overlay is incomplete!"
-fi
+    # ...existing code...
 
 # 10.6. Kernelmodule-Autoload-Check (absolute path)
 print_info "Check Autoload: $MODULES_LOAD"
@@ -417,6 +381,22 @@ if [[ -f "$LAN865X_KO_SRC" ]]; then
     print_info "lan865x.ko was copied to $LAN865X_KO_DST."
 else
     print_warning "lan865x.ko not found: $LAN865X_KO_SRC"
+fi
+
+# Teste am Ende, ob die wichtigen Overlay-Dateien vorhanden sind
+DROPBEAR_CONF_OVERLAY="$BASE_DIR/board/mscc/common/rootfs_overlay/etc/dropbear/dropbear.conf"
+LAN865X_CONF_OVERLAY="$BASE_DIR/board/mscc/common/rootfs_overlay/etc/modules-load.d/lan865x.conf"
+
+if [ -f "$DROPBEAR_CONF_OVERLAY" ]; then
+    print_info "dropbear.conf ist im Overlay vorhanden: $DROPBEAR_CONF_OVERLAY"
+else
+    print_warning "dropbear.conf fehlt im Overlay: $DROPBEAR_CONF_OVERLAY"
+fi
+
+if [ -f "$LAN865X_CONF_OVERLAY" ]; then
+    print_info "lan865x.conf ist im Overlay vorhanden: $LAN865X_CONF_OVERLAY"
+else
+    print_warning "lan865x.conf fehlt im Overlay: $LAN865X_CONF_OVERLAY"
 fi
 
 # Copy brsdk_standalone_arm.ext4.gz to the same destination directory
