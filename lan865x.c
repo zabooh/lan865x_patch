@@ -11,6 +11,9 @@
 #include <linux/module.h>
 #include <linux/phy.h>
 
+#define lan865x_dbg(fmt, ...) \
+	pr_info("lan865x: %s: " fmt, __func__, ##__VA_ARGS__)
+
 #define PHY_ID_LAN867X_REVB1 0x0007C162
 #define PHY_ID_LAN867X_REVC1 0x0007C164
 #define PHY_ID_LAN867X_REVC2 0x0007C165
@@ -110,16 +113,17 @@ static const u16 lan865x_revb_fixup_cfg_regs[5] = {
 static int lan865x_indirect_read(struct phy_device *phydev, u16 addr)
 {
 	int ret;
+	lan865x_dbg("indirect_read addr=0x%04x", addr);
 
 	ret = phy_write_mmd(phydev, MDIO_MMD_VEND2, LAN865X_REG_CFGPARAM_ADDR,
 			    addr);
 	if (ret)
-		return ret;
+		lan865x_dbg("phy_write_mmd ADDR failed: %d", ret); return ret;
 
 	ret = phy_write_mmd(phydev, MDIO_MMD_VEND2, LAN865X_REG_CFGPARAM_CTRL,
 			    LAN865X_CFGPARAM_READ_ENABLE);
 	if (ret)
-		return ret;
+		lan865x_dbg("phy_write_mmd CTRL failed: %d", ret); return ret;
 
 	return phy_read_mmd(phydev, MDIO_MMD_VEND2, LAN865X_REG_CFGPARAM_DATA);
 }
@@ -131,11 +135,12 @@ static int lan865x_generate_cfg_offsets(struct phy_device *phydev, s8 offsets[2]
 {
 	const u16 fixup_regs[2] = {0x0004, 0x0008};
 	int ret;
+	lan865x_dbg("generate_cfg_offsets");
 
 	for (int i = 0; i < ARRAY_SIZE(fixup_regs); i++) {
 		ret = lan865x_indirect_read(phydev, fixup_regs[i]);
 		if (ret < 0)
-			return ret;
+			lan865x_dbg("indirect_read failed: %d", ret); return ret;
 		if (ret & BIT(4))
 			offsets[i] = ret | 0xE0;
 		else
@@ -148,12 +153,13 @@ static int lan865x_generate_cfg_offsets(struct phy_device *phydev, s8 offsets[2]
 static int lan865x_read_cfg_params(struct phy_device *phydev, u16 cfg_params[])
 {
 	int ret;
+	lan865x_dbg("read_cfg_params");
 
 	for (int i = 0; i < ARRAY_SIZE(lan865x_revb_fixup_cfg_regs); i++) {
 		ret = phy_read_mmd(phydev, MDIO_MMD_VEND2,
 				   lan865x_revb_fixup_cfg_regs[i]);
 		if (ret < 0)
-			return ret;
+			lan865x_dbg("phy_read_mmd failed: %d", ret); return ret;
 		cfg_params[i] = (u16)ret;
 	}
 
@@ -163,13 +169,14 @@ static int lan865x_read_cfg_params(struct phy_device *phydev, u16 cfg_params[])
 static int lan865x_write_cfg_params(struct phy_device *phydev, u16 cfg_params[])
 {
 	int ret;
+	lan865x_dbg("write_cfg_params");
 
 	for (int i = 0; i < ARRAY_SIZE(lan865x_revb_fixup_cfg_regs); i++) {
 		ret = phy_write_mmd(phydev, MDIO_MMD_VEND2,
 				    lan865x_revb_fixup_cfg_regs[i],
 				    cfg_params[i]);
 		if (ret)
-			return ret;
+			lan865x_dbg("phy_write_mmd failed: %d", ret); return ret;
 	}
 
 	return 0;
@@ -181,14 +188,15 @@ static int lan865x_setup_cfgparam(struct phy_device *phydev)
 	u16 cfg_results[5];
 	s8 offsets[2];
 	int ret;
+	lan865x_dbg("setup_cfgparam");
 
 	ret = lan865x_generate_cfg_offsets(phydev, offsets);
 	if (ret)
-		return ret;
+		lan865x_dbg("generate_cfg_offsets failed: %d", ret); return ret;
 
 	ret = lan865x_read_cfg_params(phydev, cfg_params);
 	if (ret)
-		return ret;
+		lan865x_dbg("read_cfg_params failed: %d", ret); return ret;
 
 	cfg_results[0] = FIELD_PREP(GENMASK(15, 10), (9 + offsets[0]) & 0x3F) |
 			 FIELD_PREP(GENMASK(15, 4), (14 + offsets[0]) & 0x3F) |
@@ -207,6 +215,7 @@ static int lan865x_setup_cfgparam(struct phy_device *phydev)
 static int lan865x_revb_config_init(struct phy_device *phydev)
 {
 	int ret;
+	lan865x_dbg("revb_config_init");
 
 	/* Reference to AN1760
 	 * https://ww1.microchip.com/downloads/aemDocuments/documents/AIS/ProductDocuments/SupportingCollateral/AN-LAN8650-1-Configuration-60001760.pdf
@@ -216,7 +225,7 @@ static int lan865x_revb_config_init(struct phy_device *phydev)
 				    lan865x_revb_fixup_registers[i],
 				    lan865x_revb_fixup_values[i]);
 		if (ret)
-			return ret;
+			lan865x_dbg("phy_write_mmd failed: %d", ret); return ret;
 	}
 	/* Function to calculate and write the configuration parameters in the
 	 * 0x0084, 0x008A, 0x00AD, 0x00AE and 0x00AF registers (from AN1760)

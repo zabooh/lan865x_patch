@@ -1,10 +1,13 @@
 #!/usr/bin/env bash
 
-## Colored output
-print_info()    { echo -e "\033[1;36m[INFO]\033[0m $*"; }
-print_warning() { echo -e "\033[1;33m[WARN]\033[0m $*"; }
-print_debug()   { echo -e "\033[1;32m[DEBG]\033[0m $*"; }
-print_error()   { echo -e "\033[1;31m[ERROR]\033[0m $*"; exit 1; }
+
+# LOGFILE als 4. Parameter
+LOGFILE="${4:-patch_log.txt}"
+print_info()    { local ts="$(date '+%Y-%m-%d %H:%M:%S')"; echo -e "\033[1;36m[INFO]\033[0m [$ts] $*"; echo "[INFO] [$ts] $*" >> "$LOGFILE"; }
+print_warning() { local ts="$(date '+%Y-%m-%d %H:%M:%S')"; echo -e "\033[1;33m[WARN]\033[0m [$ts] $*"; echo "[WARN] [$ts] $*" >> "$LOGFILE"; }
+print_debug()   { local ts="$(date '+%Y-%m-%d %H:%M:%S')"; echo -e "\033[1;32m[DEBG]\033[0m [$ts] $*"; echo "[DEBG] [$ts] $*" >> "$LOGFILE"; }
+print_error()   { local ts="$(date '+%Y-%m-%d %H:%M:%S')"; echo -e "\033[1;31m[ERROR]\033[0m [$ts] $*"; echo "[ERROR] [$ts] $*" >> "$LOGFILE"; exit 1; }
+
 
 print_info "# Changes for LAN8651 development"
 print_info ""
@@ -62,15 +65,23 @@ print_info " - BSP base directory ${2}"
 #    exit 1
 #fi
 
-BASE_DIR=${2}
-REPO_DIR=${3}
 
+REPO_DIR="$(realpath "$3")"
+SCRIPT_DIR="$(realpath "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)")"
+print_debug "SCRIPT_DIR: $SCRIPT_DIR"
+BASE_DIR="$2"
+case "$BASE_DIR" in
+    /*) BASE_DIR="$BASE_DIR" ;;
+    *) BASE_DIR="$(realpath "$SCRIPT_DIR/../$BASE_DIR")" ;;
+esac
+print_debug "BASE_DIR: $BASE_DIR"
 
-# 1. Create post-build.sh in BSP board/mscc/common/ if not present
-POST_BUILD_SH_BSP="$PROJECT_ROOT/$BASE_DIR/board/mscc/common/post-build.sh"
-if [[ ! -f "$POST_BUILD_SH_BSP" ]]; then
-    mkdir -p "$(dirname "$POST_BUILD_SH_BSP")"
-    cat > "$POST_BUILD_SH_BSP" <<'EOSH'
+# 1. Create post-build.sh im Buildroot-Quellverzeichnis anlegen
+POST_BUILD_SH_BSP="$BASE_DIR/board/mscc/common/post-build.sh"
+print_info "(Re)creating post-build.sh in BSP: $POST_BUILD_SH_BSP"
+mkdir -p "$(dirname "$POST_BUILD_SH_BSP")"
+rm -f "$POST_BUILD_SH_BSP"
+cat > "$POST_BUILD_SH_BSP" <<'EOSH'
 #!/usr/bin/env bash
 set -euo pipefail
 
@@ -105,8 +116,13 @@ if [ -d "$TARGET_DIR/etc/init.d" ]; then
     fi
 fi
 
+# Remove dangling symlink if $TARGET_DIR/etc/dropbear is a symlink
+if [ -L "$TARGET_DIR/etc/dropbear" ]; then
+    echo "Removing dangling symlink: $TARGET_DIR/etc/dropbear"
+    rm -f "$TARGET_DIR/etc/dropbear"
+fi
 # Create dropbear config directory if it doesn't exist
-mkdir -p "$TARGET_DIR/etc/dropbear"
+mkdir -p "$TARGET_DIR/etc/dropbear" || true
 
 # Ensure proper permissions
 chmod 755 "$TARGET_DIR/etc/dropbear"
@@ -117,14 +133,14 @@ echo "Root login enabled with password: microchip"
 EOSH
     chmod +x "$POST_BUILD_SH_BSP"
     print_info "post-build.sh was created automatically in BSP board/mscc/common/."
-fi
 #!/usr/bin/env bash
 set -euo pipefail
 
 
+
 # 1. Initialization and parameter check
-if [[ $# -ne 3 ]]; then
-    print_error "Exactly three arguments (build config directory/BSP/repo) required!"
+if [[ $# -lt 3 ]]; then
+    print_error "At least three arguments (build config directory/BSP/repo) required!"
 fi
 
 BUILD_CONFIG="$1"
@@ -135,12 +151,12 @@ print_debug "BUILD_CONFIG: $BUILD_CONFIG"
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 print_debug "SCRIPT_DIR: $SCRIPT_DIR"
-PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
+PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 print_debug "PROJECT_ROOT: $PROJECT_ROOT"
 
 # All Buildroot/output/overlay paths relative to project root
 
-OUTPUT_DIR="$PROJECT_ROOT/$BASE_DIR/output/$BUILD_CONFIG"
+OUTPUT_DIR="$BASE_DIR/output/$BUILD_CONFIG"
 print_debug "OUTPUT_DIR: $OUTPUT_DIR"
 BUILD_DIR="$OUTPUT_DIR"
 print_debug "BUILD_DIR: $BUILD_DIR"
@@ -150,7 +166,7 @@ TARGET_DTS_DIR="$KERNEL_BUILD_DIR/arch/arm/boot/dts/microchip"
 print_debug "TARGET_DTS_DIR: $TARGET_DTS_DIR"
 IMAGES_DIR="$OUTPUT_DIR/images"
 print_debug "IMAGES_DIR: $IMAGES_DIR"
-OVERLAY_SRC="$PROJECT_ROOT/$BASE_DIR/board/mscc/common/rootfs_overlay"
+OVERLAY_SRC="$BASE_DIR/board/mscc/common/rootfs_overlay"
 print_debug "OVERLAY_SRC: $OVERLAY_SRC"
 OVERLAY_DST="$OUTPUT_DIR/board/mscc/common/rootfs_overlay"
 print_debug "OVERLAY_DST: $OVERLAY_DST"
@@ -166,6 +182,8 @@ SOURCE_DTS="$SCRIPT_DIR/lan966x-pcb8291.dts"
 print_debug "SOURCE_DTS: $SOURCE_DTS"
 SOURCE_LAN865X="$SCRIPT_DIR/lan865x.c"
 print_debug "SOURCE_LAN865X: $SOURCE_LAN865X"
+SOURCE_MICROCHIP_T1S="$SCRIPT_DIR/microchip_t1s.c"
+print_debug "SOURCE_MICROCHIP_T1S: $SOURCE_MICROCHIP_T1S"
 LINUX_CONFIG_SOURCE="$SCRIPT_DIR/linux.config"
 print_debug "LINUX_CONFIG_SOURCE: $LINUX_CONFIG_SOURCE"
 BUILDROOT_CONFIG_SOURCE="$SCRIPT_DIR/buildroot.config"
@@ -195,6 +213,9 @@ fi
 # 3. Directory and file checks
 [[ -f "$SOURCE_DTS" ]]      || print_error "SOURCE_DTS $SOURCE_DTS is missing!"
 [[ -f "$SOURCE_LAN865X" ]]  || print_error "SOURCE_LAN865X $SOURCE_LAN865X is missing!"
+[[ -f "$SOURCE_MICROCHIP_T1S" ]] || print_error "SOURCE_MICROCHIP_T1S $SOURCE_MICROCHIP_T1S is missing!"
+[[ -f "$BUILDROOT_CONFIG_SOURCE" ]] || print_error "BUILDROOT_CONFIG_SOURCE $BUILDROOT_CONFIG_SOURCE is missing!"
+[[ -f "$LINUX_CONFIG_SOURCE" ]]    || print_error "LINUX_CONFIG_SOURCE $LINUX_CONFIG_SOURCE is missing!"
 [[ -d "$TARGET_DTS_DIR" ]]  || print_error "TARGET_DTS_DIR $TARGET_DTS_DIR is missing!"
 [[ -d "$BUILD_DIR" ]]       || print_error "BUILD_DIR $BUILD_DIR is missing!"
 [[ -d "$KERNEL_BUILD_DIR" ]]|| print_error "KERNEL_BUILD_DIR $KERNEL_BUILD_DIR is missing!"
@@ -234,10 +255,13 @@ fi
 LAN865X_TARGET="$KERNEL_BUILD_DIR/drivers/net/ethernet/microchip/lan865x/lan865x.c"
 cp "$SOURCE_LAN865X" "$LAN865X_TARGET"
 print_info "LAN865x driver file updated."
+MICROCHIP_T1S_TARGET="$KERNEL_BUILD_DIR/drivers/net/phy/microchip_t1s.c"                                       
+cp "$SOURCE_MICROCHIP_T1S" "$MICROCHIP_T1S_TARGET"
+print_info "Microchip T1S driver file updated."
 
 # 7. Set up Ethernet interfaces (via overlay)
 # 7. Set up Ethernet interfaces (via overlay, directly in the source overlay)
-ETH_OVERLAY_SRC="$PROJECT_ROOT/$BASE_DIR/board/mscc/common/rootfs_overlay/etc/network/interfaces"
+ETH_OVERLAY_SRC="$BASE_DIR/board/mscc/common/rootfs_overlay/etc/network/interfaces"
 mkdir -p "$(dirname "$ETH_OVERLAY_SRC")"
 cat > "$ETH_OVERLAY_SRC" <<EOF
 auto eth0
@@ -260,7 +284,7 @@ print_info "Ethernet interfaces set up in source overlay: $ETH_OVERLAY_SRC"
 
 
 # 7.1. Create init script for lan865x module autoload (BusyBox init workaround) in the source overlay
-INITD_SCRIPT_SRC="$PROJECT_ROOT/$BASE_DIR/board/mscc/common/rootfs_overlay/etc/init.d/S09lan865xmodprobe"
+INITD_SCRIPT_SRC="$BASE_DIR/board/mscc/common/rootfs_overlay/etc/init.d/S09lan865xmodprobe"
 mkdir -p "$(dirname "$INITD_SCRIPT_SRC")"
 cat > "$INITD_SCRIPT_SRC" <<'EOS'
 #!/bin/sh
@@ -300,7 +324,7 @@ chmod +x "$INITD_SCRIPT_SRC"
 print_info "Init script for lan865x module autoload created: $INITD_SCRIPT_SRC"
 
 # 8. Create load script for the target in the source overlay
-LOAD_SCRIPT_SRC="$PROJECT_ROOT/$BASE_DIR/board/mscc/common/rootfs_overlay/root/load_lan865x.sh"
+LOAD_SCRIPT_SRC="$BASE_DIR/board/mscc/common/rootfs_overlay/root/load_lan865x.sh"
 mkdir -p "$(dirname "$LOAD_SCRIPT_SRC")"
 cat > "$LOAD_SCRIPT_SRC" <<'EOS'
 #!/bin/sh
@@ -369,9 +393,9 @@ else
     print_warning "No autoload entry for lan865x found!"
 fi
 
-# 10.5. SSH-Chcek (only Overlay-test)
-print_info "Check SSH-Konfiguration: $OVERLAY_DST/etc/default/dropbear und $OVERLAY_DST/etc/dropbear/dropbear.conf"
-if [[ -f "$OVERLAY_DST/etc/default/dropbear" && -f "$OVERLAY_DST/etc/dropbear/dropbear.conf" ]]; then
+# 10.5. SSH-Check (only Overlay-test)
+print_info "Check SSH-Konfiguration: $OVERLAY_DST/etc/dropbear und $OVERLAY_DST/etc/dropbear/dropbear.conf"
+if [[ -d "$OVERLAY_DST/etc/dropbear" && -f "$OVERLAY_DST/etc/dropbear/dropbear.conf" ]]; then
     print_info "SSH-Configuration in Overlay available."
 else
     print_warning "SSH configuration in overlay is incomplete!"
@@ -379,14 +403,12 @@ fi
 
 # 10.6. Kernelmodule-Autoload-Check (absolute path)
 print_info "Check Autoload: $MODULES_LOAD"
-if grep -q 'lan865x' "$MODULES_LOAD"; then
+if [[ -f "$MODULES_LOAD" ]]; then
     print_info "Autoload-Entry lan865x available."
 else
     print_warning "No Autoload-Entry found for lan865x!"
 fi
 
-
-print_info "Patch script completed successfully. The build is now prepared for LAN8651 development."
 
 LAN865X_KO_SRC="$OUTPUT_DIR/build/linux-custom/drivers/net/ethernet/microchip/lan865x/lan865x.ko"
 LAN865X_KO_DST="/mnt/c/Users/M91221/work/lan9662/lan865x.ko"
@@ -407,3 +429,4 @@ else
     print_warning "brsdk_standalone_arm.ext4.gz not found: $BRSKD_IMAGE_SRC"
 fi
 
+print_info "Patch script completed successfully. The build is now prepared for LAN8651 development."
